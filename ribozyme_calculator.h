@@ -13,9 +13,9 @@
 #include<QtNetwork/QtNetwork>
 #define SUCEESS 0
 #define ERROR -1
-#define TWISTER_SISTER 1
-#define TWISTER 2
-#define PISTOL 3
+//#define TWISTER_SISTER 1
+//#define TWISTER 2
+//#define PISTOL 3
 #define TWISTER_MAX_BACK_LENGTH 8
 #define PISTOL_MAX_FRONT_LENGTH 10
 class ribozyme_calculator
