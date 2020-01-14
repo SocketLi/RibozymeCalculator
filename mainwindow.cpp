@@ -30,15 +30,34 @@ MainWindow::MainWindow(QWidget *parent) :
     pal.setColor(QPalette::Background, Qt::white);
     ui->Picture->setAutoFillBackground(true); //设置背景
     ui->Picture->setPalette(pal);
-    DrawArea=ui->Picture;
-    DrawArea->SetPictureParas(ui->Picture->x(),ui->Picture->y(),ui->Picture->width(),ui->Picture->height());
-    DrawArea->SetDrawClicked(false);
+    ui->Picture->installEventFilter(this);
+    ui->calculate->installEventFilter(this);
+    flag=0;
+   // DrawArea=ui->Picture;
+  //  DrawArea->SetPictureParas(ui->Picture->x(),ui->Picture->y(),ui->Picture->width(),ui->Picture->height());
+   // DrawArea->SetDrawClicked(false);
     ui->ResultView->show();
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+bool MainWindow::eventFilter(QObject *watched, QEvent *event)
+{
+    if(watched==ui->Picture && event->type()==QEvent::Paint){
+        if(flag){
+            QPainter painter(ui->Picture);
+            painter.setPen(Qt::black);
+            painter.setBrush(Qt::green);
+            qDebug()<<"in paint\n";
+            painter.drawRect(400,100,400+20,100+20);
+        }
+        else{
+            return false;
+        }
+    }
+    return QMainWindow::eventFilter(watched, event);
 }
 void MainWindow::SetResultView(vector<vector<string>> CalculateResult)
 {
@@ -55,6 +74,9 @@ void MainWindow::SetResultView(vector<vector<string>> CalculateResult)
 }
 void MainWindow::on_calculate_clicked()
 {
+    flag=1;
+    ui->Picture->update();
+    qDebug()<<"in click"<<endl;
      vector<vector<string>> CalculateResult;
      RNA_Calculator.Calculate(ui->DNAseq->toPlainText().toStdString(),ui->TarRNA->toPlainText().toStdString(),
                               ui->comboBox->currentText().toStdString(),CalculateResult);
@@ -62,9 +84,9 @@ void MainWindow::on_calculate_clicked()
      model->removeRows(0,model->rowCount());
      if(!CalculateResult.empty()) {
          SetResultView(CalculateResult);
-         DrawArea->SetDrawClicked(true);
-         qDebug()<<"in click"<<endl;
-        //
+       //  DrawArea->SetDrawClicked(true);
+
+
      }
      return;
 }
