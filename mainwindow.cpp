@@ -10,6 +10,9 @@ using namespace std;
 #define DNA_SEQ 0
 #define RIBOZYME_SEQ 3
 #define CDNA_SEQ 6
+#define TWISTER_SISTER "Twister sister"
+#define TWISTER "Twister"
+#define PISTOL "Pistol"
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -31,8 +34,6 @@ void MainWindow::SetUpPictureWidget()
     ui->Picture->setAutoFillBackground(true); //设置背景
     ui->Picture->setPalette(pal);
     ui->Picture->installEventFilter(this);
-    PictureX=ui->Picture->x();
-    PictureY=ui->Picture->y();
     PictureWidth=ui->Picture->width();
     PictureHeight=ui->Picture->height();
 }
@@ -64,6 +65,12 @@ void MainWindow::OnRightMenuClicked(QPoint ClickPos)
 void MainWindow::OnDrawActionClicked()
 {
     flag=true;
+    QModelIndex CurIndex = ui->ResultView->selectionModel()->currentIndex();//获取当前行
+    QModelIndex RNA35Index=ui->ResultView->model()->index(CurIndex.row(),DNA_SEQ,QModelIndex());
+    QModelIndex RNA53Index=ui->ResultView->model()->index(CurIndex.row(),RIBOZYME_SEQ,QModelIndex());
+    RNA35=RNA35Index.data().toString().toStdString();
+    RNA53=RNA53Index.data().toString().toStdString();
+    qDebug()<<RNA35.c_str()<<" "<<RNA53.c_str();
     ui->Picture->update();
 }
 void MainWindow::OnCopyActionClicked()
@@ -74,7 +81,7 @@ void MainWindow::SetUpResultView()
 {
     ui->comboBox->clear();
     QStringList ZymeList;
-    ZymeList<<"Twister sister"<<"Twister"<<"Pistol";
+    ZymeList<<TWISTER_SISTER<<TWISTER<<PISTOL;
     ui->comboBox->addItems(ZymeList);
     QStandardItemModel* model = new QStandardItemModel();
     QStringList labels = QObject::trUtf8(" 匹配序列(DNA),开始位置,结束位置,核酶序列,GC比例,TM值,cDNA序列").simplified().split(",");
@@ -119,6 +126,7 @@ void MainWindow::on_calculate_clicked()
      vector<vector<string>> CalculateResult;
      RNA_Calculator.Calculate(ui->DNAseq->toPlainText().toStdString(),ui->TarRNA->toPlainText().toStdString(),
                               ui->comboBox->currentText().toStdString(),CalculateResult);
+     ResultViewRibozymeType= ui->comboBox->currentText().toStdString();
      QStandardItemModel* model=(QStandardItemModel*)ui->ResultView->model();
      model->removeRows(0,model->rowCount());
      if(!CalculateResult.empty()) {
@@ -128,9 +136,38 @@ void MainWindow::on_calculate_clicked()
 }
 void MainWindow::DrawRibozymeImage()
 {
-    QPainter painter(ui->Picture);
-    painter.setPen(Qt::black);
-    painter.setBrush(Qt::green);
+    if(RNA35.empty() || RNA53.empty()){
+        return;
+    }
+    if(ResultViewRibozymeType==TWISTER_SISTER){
+       DrawTwisterSister();
+    }
+    else if(ResultViewRibozymeType==TWISTER){
+       DrawTwister();
+    }
+    else if(ResultViewRibozymeType==PISTOL){
+        DrawPistol();
+    }
+    /*QPainter Painter(ui->Picture);
+    Painter.setPen(Qt::black);
+    Painter.setBrush(Qt::green);
     qDebug()<<"in paint\n";
-    painter.drawRect(400,100,400+20,100+20);
+    Painter.drawRect(400,100,400+20,100+20);*/
+}
+void MainWindow::DrawTwisterSister()
+{
+   QPainter Painter(ui->Picture);
+   Painter.setPen(Qt::blue);
+  // qDebug()<<"in paint\n"<<PictureX+2*PictureWidth/3<<" "<<PictureY+PictureHeight-10;
+   Painter.drawText(PictureWidth/3,PictureHeight-10,QString(RNA53[0]));
+
+}
+
+void MainWindow::DrawTwister()
+{
+
+}
+void MainWindow::DrawPistol()
+{
+
 }
