@@ -204,7 +204,7 @@ void MainWindow::DrawBasePair(QPainter *Painter, unsigned int BaseX, unsigned in
         DEBUG_WARN("Invalid Base,fail to draw\n");
         return;
     }
-
+   return;
 }
 void MainWindow::DrawTwisterSister()
 {
