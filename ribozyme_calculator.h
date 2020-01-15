@@ -11,10 +11,12 @@
 #include<map>
 #include<QtCore/qmath.h>
 #include<QtNetwork/QtNetwork>
+#include<stdio.h>
 #define SUCEESS 0
 #define ERROR -1
 #define TWISTER_MAX_BACK_LENGTH 8
 #define PISTOL_MAX_FRONT_LENGTH 10
+#define DEBUG_WARN(x) qDebug()<<__FILE__<<" "<<__FUNCTION__<<" "<<__LINE__<<":"<<x
 class ribozyme_calculator
 {
 public:

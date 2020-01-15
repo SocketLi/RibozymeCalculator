@@ -13,6 +13,22 @@ using namespace std;
 #define TWISTER_SISTER "Twister sister"
 #define TWISTER "Twister"
 #define PISTOL "Pistol"
+
+inline char GenRNAMatchBase(char Base){
+    switch (Base) {
+    case 'A':
+        return 'U';
+    case 'G':
+        return 'C';
+    case 'C':
+        return 'G';
+    case 'U':
+        return 'A';
+    default:
+        DEBUG_WARN("ERROR BASE\n");
+        return 0;
+    }
+}
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -66,11 +82,11 @@ void MainWindow::OnDrawActionClicked()
 {
     flag=true;
     QModelIndex CurIndex = ui->ResultView->selectionModel()->currentIndex();//获取当前行
-    QModelIndex RNA35Index=ui->ResultView->model()->index(CurIndex.row(),DNA_SEQ,QModelIndex());
-    QModelIndex RNA53Index=ui->ResultView->model()->index(CurIndex.row(),RIBOZYME_SEQ,QModelIndex());
-    RNA35=RNA35Index.data().toString().toStdString();
-    RNA53=RNA53Index.data().toString().toStdString();
-    qDebug()<<RNA35.c_str()<<" "<<RNA53.c_str();
+    QModelIndex MatchRNASeqIndex=ui->ResultView->model()->index(CurIndex.row(),DNA_SEQ,QModelIndex());
+    QModelIndex RibozymeSeqIndex=ui->ResultView->model()->index(CurIndex.row(),RIBOZYME_SEQ,QModelIndex());
+    MatchRNASeq=MatchRNASeqIndex.data().toString().toStdString();
+    RibozymeSeq=RibozymeSeqIndex.data().toString().toStdString();
+    qDebug()<<MatchRNASeq.c_str()<<" "<<RibozymeSeq.c_str();
     ui->Picture->update();
 }
 void MainWindow::OnCopyActionClicked()
@@ -136,7 +152,7 @@ void MainWindow::on_calculate_clicked()
 }
 void MainWindow::DrawRibozymeImage()
 {
-    if(RNA35.empty() || RNA53.empty()){
+    if(MatchRNASeq.empty() || RibozymeSeq.empty()){
         return;
     }
     if(ResultViewRibozymeType==TWISTER_SISTER){
@@ -148,19 +164,70 @@ void MainWindow::DrawRibozymeImage()
     else if(ResultViewRibozymeType==PISTOL){
         DrawPistol();
     }
-    /*QPainter Painter(ui->Picture);
-    Painter.setPen(Qt::black);
-    Painter.setBrush(Qt::green);
-    qDebug()<<"in paint\n";
-    Painter.drawRect(400,100,400+20,100+20);*/
+}
+void MainWindow::DrawBase(QPainter *Painter, unsigned int x, unsigned int y, char Base)
+{
+    if(Painter==NULL){
+        return;
+    }
+    if(Base=='T'){
+        Base='U';
+    }
+    switch (Base) {
+     case 'A':
+        Painter->setPen(Qt::red);
+        break;
+     case 'C':
+        Painter->setPen(Qt::yellow);
+        break;
+     case 'G':
+        Painter->setPen(Qt::green);
+        break;
+    case  'U':
+       Painter->setPen(Qt::gray);
+       break;
+    default:
+        break;
+    }
+    Painter->drawText(x,y,QString(Base));
+}
+void MainWindow::DrawBasePair(QPainter *Painter, unsigned int BaseX, unsigned int BaseY, char Base,
+                              unsigned int PairX, unsigned int PairY)
+{
+    char MatchBase;
+    DrawBase(Painter,BaseX,BaseY,Base);
+    MatchBase=GenRNAMatchBase(Base);
+    if(MatchBase){
+        DrawBase(Painter,PairX,PairY,MatchBase);
+    }
+    else{
+        DEBUG_WARN("Invalid Base,fail to draw\n");
+        return;
+    }
+
 }
 void MainWindow::DrawTwisterSister()
 {
    QPainter Painter(ui->Picture);
-   Painter.setPen(Qt::blue);
-  // qDebug()<<"in paint\n"<<PictureX+2*PictureWidth/3<<" "<<PictureY+PictureHeight-10;
-   Painter.drawText(PictureWidth/3,PictureHeight-10,QString(RNA53[0]));
-
+   QFont PictureFont;
+   PictureFont.setFamily("Microsoft YaHei");
+   PictureFont.setPointSize(PICTURE_FONT_SIZE);
+   Painter.setFont(PictureFont);
+   smatch RegexResult;
+   regex RegexPartern("GCT[A,G,C,T]A[A,G,C,T]");
+   string::const_iterator MatchRNASeqBeg = MatchRNASeq.begin();
+   string::const_iterator MatchRNASeqEnd=MatchRNASeq.end();
+   if(regex_search(MatchRNASeqBeg,MatchRNASeqEnd,RegexResult,RegexPartern)){
+       int i=0;
+       for(auto it=MatchRNASeq.begin();it!=MatchRNASeq.end();++it){
+             if (it <= RegexResult[0].first - 4){
+                 DrawBase(&Painter,TWISTER_SISTER_BEGIN_X-16*i,TWISTER_SISTER_BEGIN_Y+16*i,*it);
+                 i++;
+             }
+       }
+   }
+   DrawBase(&Painter,PictureWidth/3,PictureHeight-10,RibozymeSeq[0]);
+   Painter.drawText(PictureWidth/3,PictureHeight-28,QString(RibozymeSeq[0]));
 }
 
 void MainWindow::DrawTwister()
