@@ -2,7 +2,7 @@
 #define MAINWINDOW_H
 #include<QPainter>
 #include <QMainWindow>
-#include "ribozyme_calculator.h"
+#include "RibozymeCalculator.h"
 #include "ui_mainwindow.h"
 #include<QTableView>
 #include<QPoint>
@@ -39,7 +39,7 @@ private:
      void DrawBasePair(QPainter *Painter,unsigned int BaseX,unsigned int BaseY,char Base,
                        unsigned int PairX,unsigned int PairY);
      Ui::MainWindow *ui;
-     ribozyme_calculator RNA_Calculator;
+     RibozymeCalculator RNA_Calculator;
      QMenu* RightMenu;
      std::string RibozymeSeq,MatchRNASeq,ResultViewRibozymeType;
      unsigned int PictureWidth,PictureHeight;

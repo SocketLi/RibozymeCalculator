@@ -25,11 +25,11 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
         main.cpp \
         mainwindow.cpp \
-    ribozyme_calculator.cpp
+    RibozymeCalculator.cpp
 
 HEADERS += \
         mainwindow.h \
-    ribozyme_calculator.h
+    RibozymeCalculator.h
 
 FORMS += \
         mainwindow.ui
