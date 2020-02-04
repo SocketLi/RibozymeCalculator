@@ -1,7 +1,7 @@
-#include"ribozyme_calculator.h"
+#include"RibozymeCalculator.h"
 #include <qDebug>
 using namespace std;
-string ribozyme_calculator::Gen_Regex_Pattern(string OldTarRNA)
+string RibozymeCalculator::GenRegexPattern(string OldTarRNA)
 {
     string RegexPattern,TarRNA;
     for(auto it=OldTarRNA.begin();it!=OldTarRNA.end();++it)
@@ -45,7 +45,7 @@ string ribozyme_calculator::Gen_Regex_Pattern(string OldTarRNA)
     }
     return RegexPattern;
 }
-string ribozyme_calculator:: Gen_cDNA(string Ribozyme)
+string RibozymeCalculator:: GenCDNA(string Ribozyme)
 {
     string cDNA;
     for (auto it = Ribozyme.begin(); it != Ribozyme.end(); ++it)
@@ -72,11 +72,11 @@ string ribozyme_calculator:: Gen_cDNA(string Ribozyme)
         }
         }
     }
-    string T7_Template = "CGCTATAGTGAGTCGTATTACC";
-    cDNA += T7_Template;
+    string T7Template = "CGCTATAGTGAGTCGTATTACC";
+    cDNA += T7Template;
     return cDNA;
 }
-string ribozyme_calculator::Calculate_GC_Percent(string Ribozyme)
+string RibozymeCalculator::CalculateGCPercent(string Ribozyme)
 {
     double count=0;
     for(unsigned int i=0;i<Ribozyme.length();++i)
@@ -88,7 +88,7 @@ string ribozyme_calculator::Calculate_GC_Percent(string Ribozyme)
     }
     return to_string(count/double(Ribozyme.length())*100);
 }
-string ribozyme_calculator::Calculate_TM(string RNAseq)
+string RibozymeCalculator::CalculateTM(string RNAseq)
 {
     int ANum=0,GNum=0,CNum=0,TNum=0;
     for(auto it=RNAseq.begin();it!=RNAseq.end();++it){
@@ -116,7 +116,7 @@ string ribozyme_calculator::Calculate_TM(string RNAseq)
         return to_string(64.9 +41*(GNum+CNum-16.4)/(ANum+TNum+GNum+CNum));
     }
 }
-void ribozyme_calculator::CalculateTwisterSister(string& MatchRNA, smatch SubRegexResult, string& Ribozyme)
+void RibozymeCalculator::CalculateTwisterSister(string& MatchRNA, smatch SubRegexResult, string& Ribozyme)
 {
     Ribozyme.clear();
     for (auto it = MatchRNA.begin(); it != MatchRNA.end(); ++it)
@@ -161,20 +161,20 @@ void ribozyme_calculator::CalculateTwisterSister(string& MatchRNA, smatch SubReg
       }
     }
 }
-void ribozyme_calculator::CalculateRibozymeParas(string MatchRNA, string Ribozyme, unsigned int MatchBeginPos,
+void RibozymeCalculator::CalculateRibozymeParas(string MatchRNA, string Ribozyme, unsigned int MatchBeginPos,
                                                  unsigned int MatchEndPos, std::vector<string> &CalculateResultItem)
 {
-    string cDNA = Gen_cDNA(Ribozyme);
+    string cDNA = GenCDNA(Ribozyme);
     CalculateResultItem.push_back(MatchRNA);
     CalculateResultItem.push_back(to_string(MatchBeginPos));
     CalculateResultItem.push_back(to_string(MatchEndPos));
     reverse(Ribozyme.begin(),Ribozyme.end());
     CalculateResultItem.push_back(Ribozyme);
-    CalculateResultItem.push_back(Calculate_GC_Percent(Ribozyme)+"%");//GC
-    CalculateResultItem.push_back(Calculate_TM(MatchRNA));//TM
+    CalculateResultItem.push_back(CalculateGCPercent(Ribozyme)+"%");//GC
+    CalculateResultItem.push_back(CalculateTM(MatchRNA));//TM
     CalculateResultItem.push_back(cDNA);
 }
-void ribozyme_calculator::CalculatePistol(string &MatchRNA, string &Ribozyme)
+void RibozymeCalculator::CalculatePistol(string &MatchRNA, string &Ribozyme)
 {
    Ribozyme.clear();
    for(auto it=MatchRNA.begin();it!=MatchRNA.end();++it){
@@ -209,7 +209,7 @@ void ribozyme_calculator::CalculatePistol(string &MatchRNA, string &Ribozyme)
   }
   Ribozyme+="GAUAAAUUGCACCGGGAUUGGUGC";
 }
-void ribozyme_calculator::CalculateTwister(string& MatchRNA,smatch SubRegexResult,string& Ribozyme)
+void RibozymeCalculator::CalculateTwister(string& MatchRNA,smatch SubRegexResult,string& Ribozyme)
 {
     Ribozyme.clear();
     for (auto it = MatchRNA.begin(); it != MatchRNA.end(); ++it)
@@ -252,7 +252,7 @@ void ribozyme_calculator::CalculateTwister(string& MatchRNA,smatch SubRegexResul
       }
     }
 }
-int ribozyme_calculator::Calculate(string OldDNASeq, string TarRNA,string ZymeType,std::vector<std::vector<std::string>>& CalculateResult)
+int RibozymeCalculator::Calculate(string OldDNASeq, string TarRNA,string ZymeType,std::vector<std::vector<std::string>>& CalculateResult)
 {
     string DNASeq;
     CalculateResult.clear();
@@ -268,7 +268,7 @@ int ribozyme_calculator::Calculate(string OldDNASeq, string TarRNA,string ZymeTy
            DNASeq.push_back(*it);
          }
        }
-        string RegexPattern = Gen_Regex_Pattern(TarRNA);
+        string RegexPattern = GenRegexPattern(TarRNA);
         if (RegexPattern.empty()){
             iRet=false;
             break;
