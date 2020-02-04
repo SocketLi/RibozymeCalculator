@@ -17,13 +17,13 @@
 #define TWISTER_MAX_BACK_LENGTH 8
 #define PISTOL_MAX_FRONT_LENGTH 10
 #define DEBUG_WARN(x) qDebug()<<__FILE__<<" "<<__FUNCTION__<<" "<<__LINE__<<":"<<x
-class ribozyme_calculator
+class RibozymeCalculator
 {
 public:
-   std::string Gen_Regex_Pattern(std::string TarRNA);
-   std::string Gen_cDNA(std::string Ribozyme);
-   std::string Calculate_GC_Percent(std::string Ribozyme);
-   std::string Calculate_TM(std::string Ribozyme);
+   std::string GenRegexPattern(std::string TarRNA);
+   std::string GenCDNA(std::string Ribozyme);
+   std::string CalculateGCPercent(std::string Ribozyme);
+   std::string CalculateTM(std::string Ribozyme);
    int Calculate(std::string DNASeq, std::string TarRNA,std::string ZymeType,
                   std::vector<std::vector<std::string>>& CalculateResult);
  private:
