@@ -23,7 +23,7 @@ string RibozymeCalculator::GenRegexPattern(string OldTarRNA)
         {
             if (count)
             {
-                string TempPattern = "[A,G,C,T]{" + to_string(count) + "," + to_string(count) + "}" + TarRNA[i];
+                string TempPattern = "[A,G,C,T]{" + to_string(count) +"}" + TarRNA[i];
                 RegexPattern += TempPattern;
                 count = 0;
             }
@@ -40,7 +40,7 @@ string RibozymeCalculator::GenRegexPattern(string OldTarRNA)
     }
     if (count)
     {
-        string TempPattern = "[A,G,C,T]{" + to_string(count) + "," + to_string(count) + "}";
+        string TempPattern = "[A,G,C,T]{" + to_string(count) +"}";
         RegexPattern += TempPattern;
     }
     return RegexPattern;
@@ -178,10 +178,10 @@ void RibozymeCalculator::CalculatePistol(string &MatchRNA, string &Ribozyme)
 {
    Ribozyme.clear();
    for(auto it=MatchRNA.begin();it!=MatchRNA.end();++it){
-       if(it==MatchRNA.begin()+5){
+       if(it==MatchRNA.begin()+PistolGTBeginPos){
            Ribozyme+="GCGAAUCCCGAAUU";
        }
-       else if(it==MatchRNA.begin()+6){
+       else if(it==MatchRNA.begin()+PistolGTBeginPos+1){
            continue;
        }
        else{
@@ -272,6 +272,15 @@ int RibozymeCalculator::Calculate(string OldDNASeq, string TarRNA,string ZymeTyp
         if (RegexPattern.empty()){
             iRet=false;
             break;
+        }
+        if(ZymeType=="Pistol"){
+            unsigned int pos=TarRNA.find("GT");
+            if(pos!=TarRNA.npos){
+                PistolGTBeginPos=pos;
+            }
+            else{
+                DEBUG_WARN("Invalid Pistol mark");
+            }
         }
         regex Pattern(RegexPattern);
         string::const_iterator iterStart = DNASeq.begin();

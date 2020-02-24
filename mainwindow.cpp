@@ -1,7 +1,7 @@
 #include "mainwindow.h"
 #include<QStringList>
 #include "ui_mainwindow.h"
-#include"ribozyme_calculator.h"
+#include"RibozymeCalculator.h"
 #include<QStandardItemModel>
 #include<QMenu>
 #include<QAction>

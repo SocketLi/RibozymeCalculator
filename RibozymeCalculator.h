@@ -20,6 +20,7 @@
 class RibozymeCalculator
 {
 public:
+   RibozymeCalculator():PistolGTBeginPos(0){}
    std::string GenRegexPattern(std::string TarRNA);
    std::string GenCDNA(std::string Ribozyme);
    std::string CalculateGCPercent(std::string Ribozyme);
@@ -32,6 +33,7 @@ public:
    void CalculatePistol(std::string& MatchRNA,std::string& Ribozyme);
    void CalculateRibozymeParas(std::string MatchRNA,std::string Ribozyme,unsigned int MatchBeginPos,unsigned int MatchEndPos
                                ,std::vector<std::string>& CalculateResultItem);
+   unsigned int PistolGTBeginPos;
 };
 
 #endif // RIBOZYME_CALCULATOR_H
