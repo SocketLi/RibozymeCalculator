@@ -53,7 +53,7 @@ void TwisterSisterPainter::DrawRibozymeImage(const string& RibozymeSeq,const str
     if(regex_search(MatchRNASeqBeg,MatchRNASeqEnd,RegexResult,RegexPartern)){
         int i=0;
         for(auto it=MatchRNASeq.begin();it!=MatchRNASeq.end();++it){
-              if (it <RegexResult[0].first - 4){  //TODO 完善异常处理 5端存在过短情况
+              if (it<RegexResult[0].first - 4){  //TODO 完善异常处理 5端存在过短情况
                   DrawBase(Painter,TWISTER_SISTER_BEGIN_X-16*i,TWISTER_SISTER_BEGIN_Y+16*i,*it);
                   i++;
               }
