@@ -6,10 +6,7 @@
 #include "ui_mainwindow.h"
 #include<QTableView>
 #include<QPoint>
-#define PICTURE_FONT_SIZE 16
-#define PICTURE_BASE_SPACE 2
-#define TWISTER_SISTER_BEGIN_X ui->Picture->width()-50
-#define TWISTER_SISTER_BEGIN_Y 50
+#include"common.h"
 namespace Ui {
 class MainWindow;
 }
@@ -27,17 +24,10 @@ private slots:
      void OnDrawActionClicked();
 protected:
      bool eventFilter(QObject *watched, QEvent *event);
-     void DrawRibozymeImage();
-     void DrawTwisterSister();
-     void DrawTwister();
-     void DrawPistol();
 private:
      void SetUpPictureWidget();
      void SetUpResultView();
      void CreateRightMenu();
-     void DrawBase(QPainter *Painter,unsigned int x,unsigned int y,char Base);
-     void DrawBasePair(QPainter *Painter,unsigned int BaseX,unsigned int BaseY,char Base,
-                       unsigned int PairX,unsigned int PairY);
      Ui::MainWindow *ui;
      RibozymeCalculator RNA_Calculator;
      QMenu* RightMenu;

@@ -1,5 +1,4 @@
 #include"RibozymeCalculator.h"
-#include <qDebug>
 using namespace std;
 string RibozymeCalculator::GenRegexPattern(string OldTarRNA)
 {
@@ -88,10 +87,10 @@ string RibozymeCalculator::CalculateGCPercent(string Ribozyme)
     }
     return to_string(count/double(Ribozyme.length())*100);
 }
-string RibozymeCalculator::CalculateTM(string RNAseq)
+string RibozymeCalculator::CalculateTM(string Ribozyme,string ZymeType)
 {
-    int ANum=0,GNum=0,CNum=0,TNum=0;
-    for(auto it=RNAseq.begin();it!=RNAseq.end();++it){
+    double ANum=0,GNum=0,CNum=0,TNum=0;
+    for(auto it=Ribozyme.begin();it!=Ribozyme.end();++it){
         switch (*it) {
         case 'A':
             ANum++;
@@ -109,12 +108,14 @@ string RibozymeCalculator::CalculateTM(string RNAseq)
             break;
         }
     }
-    if(RNAseq.length()<14){
-        return to_string((ANum+TNum) * 2 + (GNum+CNum) * 4);
+    if(ZymeType==PISTOL){
+        GNum--;
+        TNum--;
     }
-    else{
-        return to_string(64.9 +41*(GNum+CNum-16.4)/(ANum+TNum+GNum+CNum));
-    }
+    double Mole=(GNum+CNum)/(Ribozyme.length()-2);
+    //79.8 + 18.5*log10([Na+]) + (58.4 * (yG+zC)/(wA+xT+yG+zC)) + (11.8 * ((yG+zC)/(wA+xT+yG+zC))2) - (820/(wA+xT+yG+zC))
+    return to_string(79.8+18.5*qLn(0.05)/qLn(10)+(58.4*Mole)
+                     +11.8*pow(Mole,2)-820/(Ribozyme.length()-2));
 }
 void RibozymeCalculator::CalculateTwisterSister(string& MatchRNA, smatch SubRegexResult, string& Ribozyme)
 {
@@ -161,8 +162,8 @@ void RibozymeCalculator::CalculateTwisterSister(string& MatchRNA, smatch SubRege
       }
     }
 }
-void RibozymeCalculator::CalculateRibozymeParas(string MatchRNA, string Ribozyme, unsigned int MatchBeginPos,
-                                                 unsigned int MatchEndPos, std::vector<string> &CalculateResultItem)
+void RibozymeCalculator::CalculateRibozymeParas(string& MatchRNA, string& Ribozyme, unsigned int MatchBeginPos,
+                                                unsigned int MatchEndPos,string& ZymeType, vector<string> &CalculateResultItem)
 {
     string cDNA = GenCDNA(Ribozyme);
     CalculateResultItem.push_back(MatchRNA);
@@ -171,7 +172,7 @@ void RibozymeCalculator::CalculateRibozymeParas(string MatchRNA, string Ribozyme
     reverse(Ribozyme.begin(),Ribozyme.end());
     CalculateResultItem.push_back(Ribozyme);
     CalculateResultItem.push_back(CalculateGCPercent(Ribozyme)+"%");//GC
-    CalculateResultItem.push_back(CalculateTM(MatchRNA));//TM
+    CalculateResultItem.push_back(CalculateTM(MatchRNA,ZymeType));//TM
     CalculateResultItem.push_back(cDNA);
 }
 void RibozymeCalculator::CalculatePistol(string &MatchRNA, string &Ribozyme)
@@ -310,7 +311,7 @@ int RibozymeCalculator::Calculate(string OldDNASeq, string TarRNA,string ZymeTyp
                 string Ribozyme;
                 if(ZymeType=="Twister sister"){
                     CalculateTwisterSister(MatchRNA,SubRegexResult,Ribozyme);
-                    CalculateRibozymeParas(MatchRNA,Ribozyme,MatchBeginPos+1,MatchEndPos,CalculateResultItem);
+                    CalculateRibozymeParas(MatchRNA,Ribozyme,MatchBeginPos+1,MatchEndPos,ZymeType,CalculateResultItem);
                     CalculateResult.push_back(CalculateResultItem);
                 }
                 else if(ZymeType=="Twister"){
@@ -345,7 +346,7 @@ int RibozymeCalculator::Calculate(string OldDNASeq, string TarRNA,string ZymeTyp
                             break;
                         }
                      }
-                        CalculateRibozymeParas(MatchRNA,Ribozyme,MatchBeginPos+1,MatchEndPos+i,CalculateResultItem);
+                        CalculateRibozymeParas(MatchRNA,Ribozyme,MatchBeginPos+1,MatchEndPos+i,ZymeType,CalculateResultItem);
                         CalculateResult.push_back(CalculateResultItem);
                     }
                 }
@@ -381,7 +382,7 @@ int RibozymeCalculator::Calculate(string OldDNASeq, string TarRNA,string ZymeTyp
                             break;
                         }
                      }
-                     CalculateRibozymeParas(MatchRNA,Ribozyme,MatchBeginPos-i+1,MatchEndPos,CalculateResultItem);
+                     CalculateRibozymeParas(MatchRNA,Ribozyme,MatchBeginPos-i+1,MatchEndPos,ZymeType,CalculateResultItem);
                      CalculateResult.push_back(CalculateResultItem);
                   }
                 }

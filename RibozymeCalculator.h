@@ -2,8 +2,6 @@
 #define RIBOZYME_CALCULATOR_H
 #include <QTextEdit>
 #include<QComboBox>
-#include<regex>
-#include<string>
 #include<algorithm>
 #include<QTableView>
 #include<QStandardItem>
@@ -12,27 +10,29 @@
 #include<QtCore/qmath.h>
 #include<QtNetwork/QtNetwork>
 #include<stdio.h>
+#include"common.h"
 #define SUCEESS 0
 #define ERROR -1
 #define TWISTER_MAX_BACK_LENGTH 8
 #define PISTOL_MAX_FRONT_LENGTH 10
-#define DEBUG_WARN(x) qDebug()<<__FILE__<<" "<<__FUNCTION__<<" "<<__LINE__<<":"<<x
+using namespace std;
+
 class RibozymeCalculator
 {
 public:
    RibozymeCalculator():PistolGTBeginPos(0){}
-   std::string GenRegexPattern(std::string TarRNA);
-   std::string GenCDNA(std::string Ribozyme);
-   std::string CalculateGCPercent(std::string Ribozyme);
-   std::string CalculateTM(std::string Ribozyme);
-   int Calculate(std::string DNASeq, std::string TarRNA,std::string ZymeType,
-                  std::vector<std::vector<std::string>>& CalculateResult);
+    string GenRegexPattern(string TarRNA);
+    string GenCDNA(string Ribozyme);
+    string CalculateGCPercent(string Ribozyme);
+    string CalculateTM(string Ribozyme,string ZymeType);
+   int Calculate(string DNASeq, string TarRNA,string ZymeType,
+                 vector< vector< string>>& CalculateResult);
  private:
-   void CalculateTwisterSister(std::string& MatchRNA,std::smatch SubRegexResult,std::string& Ribozyme);
-   void CalculateTwister(std::string& MatchRNA,std::smatch SubRegexResult,std::string& Ribozyme);
-   void CalculatePistol(std::string& MatchRNA,std::string& Ribozyme);
-   void CalculateRibozymeParas(std::string MatchRNA,std::string Ribozyme,unsigned int MatchBeginPos,unsigned int MatchEndPos
-                               ,std::vector<std::string>& CalculateResultItem);
+   void CalculateTwisterSister(string& MatchRNA,smatch SubRegexResult,string& Ribozyme);
+   void CalculateTwister(string& MatchRNA, smatch SubRegexResult,string& Ribozyme);
+   void CalculatePistol(string& MatchRNA,string& Ribozyme);
+   void CalculateRibozymeParas(string& MatchRNA, string& Ribozyme, unsigned int MatchBeginPos,
+                               unsigned int MatchEndPos,string& ZymeType, vector<string> &CalculateResultItem);
    unsigned int PistolGTBeginPos;
 };
 

@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 #include<QStringList>
+#include"imagepainter.h"
 #include "ui_mainwindow.h"
 #include"RibozymeCalculator.h"
 #include<QStandardItemModel>
@@ -10,25 +11,7 @@ using namespace std;
 #define DNA_SEQ 0
 #define RIBOZYME_SEQ 3
 #define CDNA_SEQ 6
-#define TWISTER_SISTER "Twister sister"
-#define TWISTER "Twister"
-#define PISTOL "Pistol"
 
-inline char GenRNAMatchBase(char Base){
-    switch (Base) {
-    case 'A':
-        return 'U';
-    case 'G':
-        return 'C';
-    case 'C':
-        return 'G';
-    case 'U':
-        return 'A';
-    default:
-        DEBUG_WARN("ERROR BASE\n");
-        return 0;
-    }
-}
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -50,8 +33,6 @@ void MainWindow::SetUpPictureWidget()
     ui->Picture->setAutoFillBackground(true); //设置背景
     ui->Picture->setPalette(pal);
     ui->Picture->installEventFilter(this);
-    PictureWidth=ui->Picture->width();
-    PictureHeight=ui->Picture->height();
 }
 void MainWindow::CreateRightMenu()
 {
@@ -81,12 +62,6 @@ void MainWindow::OnRightMenuClicked(QPoint ClickPos)
 void MainWindow::OnDrawActionClicked()
 {
     flag=true;
-    QModelIndex CurIndex = ui->ResultView->selectionModel()->currentIndex();//获取当前行
-    QModelIndex MatchRNASeqIndex=ui->ResultView->model()->index(CurIndex.row(),DNA_SEQ,QModelIndex());
-    QModelIndex RibozymeSeqIndex=ui->ResultView->model()->index(CurIndex.row(),RIBOZYME_SEQ,QModelIndex());
-    MatchRNASeq=MatchRNASeqIndex.data().toString().toStdString();
-    RibozymeSeq=RibozymeSeqIndex.data().toString().toStdString();
-    qDebug()<<MatchRNASeq.c_str()<<" "<<RibozymeSeq.c_str();
     ui->Picture->update();
 }
 void MainWindow::OnCopyActionClicked()
@@ -114,8 +89,18 @@ void MainWindow::SetUpResultView()
 bool MainWindow::eventFilter(QObject *watched, QEvent *event)
 {
     if(watched==ui->Picture && event->type()==QEvent::Paint){
-        if(flag){
-            DrawRibozymeImage();
+        if(flag){//flag用于过滤是否点击
+            QPainter Painter(ui->Picture);
+            QModelIndex CurIndex = ui->ResultView->selectionModel()->currentIndex();//获取当前行
+            QModelIndex MatchRNASeqIndex=ui->ResultView->model()->index(CurIndex.row(),DNA_SEQ,QModelIndex());
+            QModelIndex RibozymeSeqIndex=ui->ResultView->model()->index(CurIndex.row(),RIBOZYME_SEQ,QModelIndex());
+            string MatchRNASeq=MatchRNASeqIndex.data().toString().toStdString();
+            string RibozymeSeq=RibozymeSeqIndex.data().toString().toStdString();
+
+            RibozymeImagePainter* MyRibozymeImagePainter=new RibozymeImagePainter(ResultViewRibozymeType);
+            MyRibozymeImagePainter->DrawRibozymeImage(RibozymeSeq,MatchRNASeq,ui->Picture->width(),ui->Picture->height(),&Painter);
+            delete MyRibozymeImagePainter;
+
             return true;
         }
         else{
@@ -150,91 +135,4 @@ void MainWindow::on_calculate_clicked()
      }
      return;
 }
-void MainWindow::DrawRibozymeImage()
-{
-    if(MatchRNASeq.empty() || RibozymeSeq.empty()){
-        return;
-    }
-    if(ResultViewRibozymeType==TWISTER_SISTER){
-       DrawTwisterSister();
-    }
-    else if(ResultViewRibozymeType==TWISTER){
-       DrawTwister();
-    }
-    else if(ResultViewRibozymeType==PISTOL){
-        DrawPistol();
-    }
-}
-void MainWindow::DrawBase(QPainter *Painter, unsigned int x, unsigned int y, char Base)
-{
-    if(Painter==NULL){
-        return;
-    }
-    if(Base=='T'){
-        Base='U';
-    }
-    switch (Base) {
-     case 'A':
-        Painter->setPen(Qt::red);
-        break;
-     case 'C':
-        Painter->setPen(Qt::yellow);
-        break;
-     case 'G':
-        Painter->setPen(Qt::green);
-        break;
-    case  'U':
-       Painter->setPen(Qt::gray);
-       break;
-    default:
-        break;
-    }
-    Painter->drawText(x,y,QString(Base));
-}
-void MainWindow::DrawBasePair(QPainter *Painter, unsigned int BaseX, unsigned int BaseY, char Base,
-                              unsigned int PairX, unsigned int PairY)
-{
-    char MatchBase;
-    DrawBase(Painter,BaseX,BaseY,Base);
-    MatchBase=GenRNAMatchBase(Base);
-    if(MatchBase){
-        DrawBase(Painter,PairX,PairY,MatchBase);
-    }
-    else{
-        DEBUG_WARN("Invalid Base,fail to draw\n");
-        return;
-    }
-   return;
-}
-void MainWindow::DrawTwisterSister()
-{
-   QPainter Painter(ui->Picture);
-   QFont PictureFont;
-   PictureFont.setFamily("Microsoft YaHei");
-   PictureFont.setPointSize(PICTURE_FONT_SIZE);
-   Painter.setFont(PictureFont);
-   smatch RegexResult;
-   regex RegexPartern("GCT[A,G,C,T]A[A,G,C,T]");
-   string::const_iterator MatchRNASeqBeg = MatchRNASeq.begin();
-   string::const_iterator MatchRNASeqEnd=MatchRNASeq.end();
-   if(regex_search(MatchRNASeqBeg,MatchRNASeqEnd,RegexResult,RegexPartern)){
-       int i=0;
-       for(auto it=MatchRNASeq.begin();it!=MatchRNASeq.end();++it){
-             if (it <= RegexResult[0].first - 4){
-                 DrawBase(&Painter,TWISTER_SISTER_BEGIN_X-16*i,TWISTER_SISTER_BEGIN_Y+16*i,*it);
-                 i++;
-             }
-       }
-   }
-   DrawBase(&Painter,PictureWidth/3,PictureHeight-10,RibozymeSeq[0]);
-   Painter.drawText(PictureWidth/3,PictureHeight-28,QString(RibozymeSeq[0]));
-}
 
-void MainWindow::DrawTwister()
-{
-
-}
-void MainWindow::DrawPistol()
-{
-
-}
