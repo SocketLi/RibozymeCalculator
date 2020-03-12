@@ -20,12 +20,12 @@ using namespace std;
 class RibozymeCalculator
 {
 public:
-   RibozymeCalculator():PistolGTBeginPos(0){}
+    RibozymeCalculator():PistolGTBeginPos(0){}
     string GenRegexPattern(string TarRNA);
     string GenCDNA(string Ribozyme);
     string CalculateGCPercent(string Ribozyme);
     string CalculateTM(string Ribozyme,string ZymeType);
-   int Calculate(string DNASeq, string TarRNA,string ZymeType,
+    int Calculate(string DNASeq, string TarRNA,string ZymeType,
                  vector< vector< string>>& CalculateResult);
  private:
    void CalculateTwisterSister(string& MatchRNA,smatch SubRegexResult,string& Ribozyme);
