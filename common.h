@@ -27,7 +27,7 @@ inline char GenRNAMatchBase(char Base){
 inline char GenDNAMatchBase(char Base){
     switch (Base) {
     case 'A':
-        return 'U';
+        return 'T';
     case 'G':
         return 'C';
     case 'C':
