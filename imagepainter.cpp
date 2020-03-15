@@ -4,9 +4,6 @@ void ImagePainterBase::DrawBase(QPainter *Painter,int x, int y, char Base)
     if(Painter==NULL){
         return;
     }
-    if(Base=='T'){
-        Base='U';
-    }
     switch (Base) {
      case 'A':
         Painter->setPen(Qt::red);
@@ -110,27 +107,29 @@ void ImagePainterBase::DrawMatchLine(QPainter *Painter, const QPoint &BaseCoord,
             LowBase=BaseCoord;
         }
         if(Degrees>0 && Degrees<90){
-            SetPointCoord(LineBeginCoord,HigherBase.x()+PICTURE_FONT_SIZE,HigherBase.y());
             if(Degrees>=45){
-                SetPointCoord(LineEndCoord,LowBase.x()+PICTURE_FONT_SIZE-PICTURE_FONT_SIZE/qTan(Degrees/180*M_PI),LowBase.y()-PICTURE_FONT_SIZE-LOW_BASE_SPACE);
+                SetPointCoord(LineBeginCoord,HigherBase.x()+PICTURE_FONT_SIZE+LOW_BASE_SPACE/qTan(Degrees/180*M_PI),HigherBase.y()+LOW_BASE_SPACE);
+                SetPointCoord(LineEndCoord,LowBase.x()+PICTURE_FONT_SIZE-(PICTURE_FONT_SIZE+LOW_BASE_SPACE)/qTan(Degrees/180*M_PI),LowBase.y()-(PICTURE_FONT_SIZE+LOW_BASE_SPACE));
                 LineBeginCoord.rx()-=K*(Degrees-45);
                 LineEndCoord.rx()-=K*(Degrees-45);
             }
             else{
-                 SetPointCoord(LineEndCoord,LowBase.x()-LOW_BASE_SPACE,LowBase.y()-PICTURE_FONT_SIZE*qTan(Degrees/180*M_PI));
+                 SetPointCoord(LineBeginCoord,HigherBase.x()+PICTURE_FONT_SIZE+2/qTan(Degrees/180*M_PI),HigherBase.y()+LOW_BASE_SPACE);
+                 SetPointCoord(LineEndCoord,LowBase.x()-LOW_BASE_SPACE,LowBase.y()-(PICTURE_FONT_SIZE+LOW_BASE_SPACE)*qTan(Degrees/180*M_PI));
                  LineBeginCoord.ry()-=K*(45-Degrees);
                  LineEndCoord.ry()-=K*(45-Degrees);
             }
         }
         else if(Degrees>90 && Degrees<180){
-            SetPointCoord(LineBeginCoord,HigherBase.x(),HigherBase.y());
             if(Degrees<135){
-                SetPointCoord(LineEndCoord,LowBase.x()-PICTURE_FONT_SIZE/qTan(Degrees/180*M_PI),LowBase.y()+PICTURE_FONT_SIZE+LOW_BASE_SPACE);
+                SetPointCoord(LineBeginCoord,HigherBase.x()+2/qTan(Degrees/180*M_PI),HigherBase.y()+LOW_BASE_SPACE);
+                SetPointCoord(LineEndCoord,LowBase.x()-(PICTURE_FONT_SIZE+LOW_BASE_SPACE)/qTan(Degrees/180*M_PI),LowBase.y()-(PICTURE_FONT_SIZE+LOW_BASE_SPACE));
                 LineBeginCoord.rx()+=K*(135-Degrees);
                 LineEndCoord.rx()+=K*(135-Degrees);
             }
             else{
-                SetPointCoord(LineEndCoord,LowBase.x()+PICTURE_FONT_SIZE+LOW_BASE_SPACE,LowBase.y()+PICTURE_FONT_SIZE*qTan(Degrees/180*M_PI));
+                SetPointCoord(LineBeginCoord,HigherBase.x()-LOW_BASE_SPACE,HigherBase.y()-LOW_BASE_SPACE*qTan(Degrees/180*M_PI));
+                SetPointCoord(LineEndCoord,LowBase.x()+(PICTURE_FONT_SIZE+LOW_BASE_SPACE),LowBase.y()+(PICTURE_FONT_SIZE+LOW_BASE_SPACE)*qTan(Degrees/180*M_PI));
                 LineBeginCoord.ry()-=K*(Degrees-135);
                 LineEndCoord.ry()-=K*(Degrees-135);
             }
@@ -158,30 +157,31 @@ void TwisterSisterPainter::DrawRibozymeImage(const string& RibozymeSeq,const str
     Painter->setFont(PictureFont);
     smatch RegexResult;
     regex RegexPartern("GCT[A,G,C,T]A[A,G,C,T]");
-    string::const_iterator MatchRNASeqBeg = MatchRNASeq.begin();
-    string::const_iterator MatchRNASeqEnd=MatchRNASeq.end();
-    double Dx=16,degrees=120; //x坐标的间距 角度（与x轴正向的夹角）
-    if(regex_search(MatchRNASeqBeg,MatchRNASeqEnd,RegexResult,RegexPartern)){
+    double Dx=10,degrees=120; //x坐标的间距 角度（与x轴正向的夹角）
+    if(regex_search(MatchRNASeq.begin(),MatchRNASeq.end(),RegexResult,RegexPartern)){
         int i=0;
         for(auto it=MatchRNASeq.begin();it!=MatchRNASeq.end();++it){
               if (it<RegexResult[0].first - 4){  //TODO 完善异常处理 5端存在过短情况
-                  DrawBasePair(Painter,TWISTER_SISTER_BEGIN_X-Dx*i,TWISTER_SISTER_BEGIN_Y-Dy(Dx,degrees)*i,*it,40,degrees);
+                  DrawBasePair(Painter,TWISTER_SISTER_BEGIN_X-Dx*i,TWISTER_SISTER_BEGIN_Y-Dy(Dx,degrees)*i,*it,25,degrees);
                   i++; //从右向下,所以是-dx -dy
               }
               else if(it==RegexResult[0].first - 4){
-                  DrawBase(Painter,TWISTER_SISTER_BEGIN_X-Dx*i,TWISTER_SISTER_BEGIN_Y+Dy(Dx,degrees)*i,*it);
-                 // DrawConservativeSeq(Painter,TWISTER_SISTER_BEGIN_X-Dx*i,TWISTER_SISTER_BEGIN_Y-Dy(Dx,degrees)*i,degrees);
+                  QPoint ConservativeSeqBegin=TransCoord(QPoint(TWISTER_SISTER_BEGIN_X-Dx*i,TWISTER_SISTER_BEGIN_Y-Dy(Dx,degrees)*i),
+                                                         degrees,25);//生成一下上方保守序列的起点坐标
+                  qDebug()<<ConservativeSeqBegin.x()<<" "<<ConservativeSeqBegin.y()<<endl;
+                  DrawBase(Painter,TWISTER_SISTER_BEGIN_X-Dx*i,TWISTER_SISTER_BEGIN_Y-Dy(Dx,degrees)*i,*it);//画出MatchRNASeq中不参与配对的那个碱基
+                  DrawConservativeSeq(Painter,ConservativeSeqBegin.x(),ConservativeSeqBegin.y(),degrees);
               }
         }
     }
 }
-void TwisterSisterPainter::DrawConservativeSeq(QPainter *Painter,double BeginX,double BeginY,double Degrees)
+void TwisterSisterPainter::DrawConservativeSeq(QPainter *Painter,int BeginX,int BeginY,double Degrees)
 {
     string ConservativeSeqPart="CAGGGCCGAACGU";
-    for(int i=0;i<ConservativeSeqPart.length();++i){
+    for(unsigned int i=0;i<ConservativeSeqPart.length();++i){
         if(i<6){
             double Dx=16,degress=Degrees-90;
-            DrawBasePair(Painter,BeginX-Dx*i,BeginY-Dy(Dx,degress)*i,ConservativeSeqPart[i],25,degress);
+            DrawBasePair(Painter,BeginX-Dx*(i+1),BeginY-Dy(Dx,degress)*(i+1),ConservativeSeqPart[i],25,degress,RIGHT_DOWN);
             //右下往左上 -dx -dy
         }
     }

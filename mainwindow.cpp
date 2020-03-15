@@ -91,6 +91,7 @@ bool MainWindow::eventFilter(QObject *watched, QEvent *event)
     if(watched==ui->Picture && event->type()==QEvent::Paint){
         if(flag){//flag用于过滤是否点击
             QPainter Painter(ui->Picture);
+            Painter.setRenderHints(QPainter::Antialiasing, true);
             QModelIndex CurIndex = ui->ResultView->selectionModel()->currentIndex();//获取当前行
             QModelIndex MatchRNASeqIndex=ui->ResultView->model()->index(CurIndex.row(),DNA_SEQ,QModelIndex());
             QModelIndex RibozymeSeqIndex=ui->ResultView->model()->index(CurIndex.row(),RIBOZYME_SEQ,QModelIndex());
