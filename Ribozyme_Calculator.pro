@@ -26,7 +26,8 @@ SOURCES += \
         main.cpp \
         mainwindow.cpp \
     RibozymeCalculator.cpp \
-    imagepainter.cpp
+    imagepainter.cpp \
+    imagepainterbase.cpp
 
 HEADERS += \
         mainwindow.h \
