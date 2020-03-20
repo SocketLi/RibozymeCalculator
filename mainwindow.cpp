@@ -99,7 +99,7 @@ bool MainWindow::eventFilter(QObject *watched, QEvent *event)
             string RibozymeSeq=RibozymeSeqIndex.data().toString().toStdString();
 
             RibozymeImagePainter* MyRibozymeImagePainter=new RibozymeImagePainter(ResultViewRibozymeType);
-            MyRibozymeImagePainter->DrawRibozymeImage(RibozymeSeq,MatchRNASeq,ui->Picture->width(),ui->Picture->height(),&Painter);
+            MyRibozymeImagePainter->DrawRibozymeImage(MatchRNASeq,ui->Picture->width(),ui->Picture->height(),&Painter);
             delete MyRibozymeImagePainter;
 
             return true;

@@ -11,7 +11,7 @@
 using namespace std;
 class ImagePainterBase{
     public:
-          virtual void DrawRibozymeImage(const string& RibozymeSeq,const string& MatchRNASeq,unsigned int PictureWidth,unsigned int PictureHeight,QPainter *Painter)=0;
+          virtual void DrawRibozymeImage(const string& MatchRNASeq,unsigned int PictureWidth,unsigned int PictureHeight,QPainter *Painter)=0;
           virtual ~ImagePainterBase(){}
     protected:
           void DrawBase(QPainter *Painter, int x, int y, char Base);
@@ -26,24 +26,27 @@ class ImagePainterBase{
 };
 class TwisterSisterPainter:public ImagePainterBase{
     public:
-        void DrawRibozymeImage(const string& RibozymeSeq,const string& MatchRNASeq,unsigned int PictureWidth,unsigned int PictureHeight,QPainter *Painter);
+        void DrawRibozymeImage(const string& MatchRNASeq,unsigned int PictureWidth,unsigned int PictureHeight,QPainter *Painter);
     protected:
         void DrawConservativeSeq(QPainter *Painter,int BeginX,int BeginY,double Degrees);
 
 };
 class TwisterPainter:public ImagePainterBase{
     public:
-        void DrawRibozymeImage(const string& RibozymeSeq,const string& MatchRNASeq,unsigned int PictureWidth,unsigned int PictureHeight,QPainter *Painter);
+        void DrawRibozymeImage(const string& MatchRNASeq,unsigned int PictureWidth,unsigned int PictureHeight,QPainter *Painter);
+
 };
 class PistolPainter:public ImagePainterBase{
     public:
-        void DrawRibozymeImage(const string& RibozymeSeq,const string& MatchRNASeq,unsigned int PictureWidth,unsigned int PictureHeight,QPainter *Painter);
+        void DrawRibozymeImage(const string& MatchRNASeq,unsigned int PictureWidth,unsigned int PictureHeight,QPainter *Painter);
+    protected:
+        void DrawConservativeSeq(QPainter *Painter,const QPoint& BeginCoord);
 };
 class RibozymeImagePainter{
     public:
         RibozymeImagePainter(const string& RibozymeType);
         ~RibozymeImagePainter();
-        void DrawRibozymeImage(const string& RibozymeSeq,const string& MatchRNASeq,unsigned int PictureWidth,unsigned int PictureHeight,QPainter *Painter);
+        void DrawRibozymeImage(const string& MatchRNASeq,unsigned int PictureWidth,unsigned int PictureHeight,QPainter *Painter);
     private:
         ImagePainterBase* ImagePainter;
 };

@@ -1,5 +1,6 @@
 #include"RibozymeCalculator.h"
 using namespace std;
+extern unsigned int PistolGTBackPos;
 string RibozymeCalculator::GenRegexPattern(string OldTarRNA)
 {
     string RegexPattern,TarRNA;
@@ -261,7 +262,7 @@ int RibozymeCalculator::Calculate(string OldDNASeq, string TarRNA,string ZymeTyp
     do
     {
        if(OldDNASeq.empty() || TarRNA.empty()) {
-         iRet=false;
+         iRet=ERROR;
          break;
        }
        for(auto it=OldDNASeq.begin();it!=OldDNASeq.end();++it){
@@ -271,16 +272,19 @@ int RibozymeCalculator::Calculate(string OldDNASeq, string TarRNA,string ZymeTyp
        }
         string RegexPattern = GenRegexPattern(TarRNA);
         if (RegexPattern.empty()){
-            iRet=false;
+            iRet=ERROR;
             break;
         }
         if(ZymeType=="Pistol"){
             unsigned int pos=TarRNA.find("GT");
             if(pos!=TarRNA.npos){
                 PistolGTBeginPos=pos;
+                PistolGTBackPos=TarRNA.length()-pos-1;
             }
             else{
                 DEBUG_WARN("Invalid Pistol mark");
+                iRet=ERROR;
+                break;
             }
         }
         regex Pattern(RegexPattern);

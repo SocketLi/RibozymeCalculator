@@ -6,16 +6,16 @@ void ImagePainterBase::DrawBase(QPainter *Painter,int x, int y, char Base)
     }
     switch (Base) {
      case 'A':
-        Painter->setPen(Qt::red);
+        Painter->setPen(QColor(108,106,107));
         break;
      case 'C':
-        Painter->setPen(Qt::yellow);
+        Painter->setPen(QColor(148,147,140));
         break;
      case 'G':
-        Painter->setPen(Qt::green);
+        Painter->setPen(QColor(204,159,148));
         break;
     case  'U':
-       Painter->setPen(Qt::gray);
+       Painter->setPen(QColor(199,152,127));
        break;
     default:
         return;
@@ -87,14 +87,14 @@ void ImagePainterBase::DrawMatchLine(QPainter *Painter, const QPoint &BaseCoord,
 {
     QPoint LineBeginCoord,LineEndCoord;
     if(!Degrees){
-        Painter->setRenderHints(QPainter::Antialiasing, false);//启用会导致此时画出的匹配线过粗，不美观
         if(BaseCoord.x()>MatchedBaseCoord.x()){//判断两个碱基的位置关系从而确定直线的两个端点
+            Painter->setRenderHints(QPainter::Antialiasing, false);//启用会导致此时画出的匹配线过粗，不美观
             SetPointCoord(LineBeginCoord,MatchedBaseCoord.x()+PICTURE_FONT_SIZE+LOW_BASE_SPACE*2,MatchedBaseCoord.y()-PICTURE_FONT_SIZE/2);
             SetPointCoord(LineEndCoord,BaseCoord.x()-LOW_BASE_SPACE*2,BaseCoord.y()-PICTURE_FONT_SIZE/2);
         }
         else{
-            SetPointCoord(LineBeginCoord,BaseCoord.x()+PICTURE_FONT_SIZE+LOW_BASE_SPACE*2,BaseCoord.y()-PICTURE_FONT_SIZE/2);
-            SetPointCoord(LineEndCoord,MatchedBaseCoord.x()+LOW_BASE_SPACE*2,MatchedBaseCoord.y()-PICTURE_FONT_SIZE/2);
+            SetPointCoord(LineEndCoord,BaseCoord.x()+PICTURE_FONT_SIZE+LOW_BASE_SPACE*2,BaseCoord.y()-PICTURE_FONT_SIZE/2);
+            SetPointCoord(LineBeginCoord,MatchedBaseCoord.x()-LOW_BASE_SPACE*2,MatchedBaseCoord.y()-PICTURE_FONT_SIZE/2);
         }
     }
     else{
@@ -135,12 +135,20 @@ void ImagePainterBase::DrawMatchLine(QPainter *Painter, const QPoint &BaseCoord,
                 LineEndCoord.ry()-=K*(Degrees-135);
             }
         }
+        else if(Degrees==90){
+            Painter->setRenderHints(QPainter::Antialiasing, false);//启用会导致此时画出的匹配线过粗，不美观
+            SetPointCoord(LineBeginCoord,LowBase.x()+PICTURE_FONT_SIZE/2,LowBase.y()-PICTURE_FONT_SIZE-LOW_BASE_SPACE*2);
+            SetPointCoord(LineEndCoord,HigherBase.x()+PICTURE_FONT_SIZE/2,HigherBase.y()+LOW_BASE_SPACE*2);
+        }
         else{
             DEBUG_WARN("invalid degrees");
             return;
         }
     }
-    Painter->setPen(Qt::black);
+    QPen pen;
+    pen.setColor(Qt::black);
+    pen.setWidth(2);
+    Painter->setPen(pen);
     Painter->drawLine(LineBeginCoord,LineEndCoord);
     Painter->setRenderHints(QPainter::Antialiasing,true);
 }
@@ -150,7 +158,8 @@ double ImagePainterBase::GetLineDegree(const QPoint &p1, const QPoint &p2)
         return M_PI/2;
     }
     else{
-        return qAtan(double(p1.y()-p2.y())/(p1.x()-p2.x()));
+        double Degrees=qAtan(double(p1.y()-p2.y())/(p1.x()-p2.x()));
+        return Degrees>=0 ? Degrees : M_PI+Degrees;
     }
 }
 void ImagePainterBase::DrawCriclePathBase(QPainter *Painter,const string& RNAseq,QPoint &BeginCoord, QPoint &EndCoord, double r,bool IsClockWise,bool Oritation)
@@ -192,6 +201,17 @@ QPoint ImagePainterBase::GetCenterCoord(QPoint &BeginCoord, QPoint &EndCoord, do
     if(sqrt(pow(BeginCoord.x()-EndCoord.x(),2)+pow(BeginCoord.y()-EndCoord.y(),2))==2*r){
         return ConnectionCenter;
     }
+    if(BeginCoord.y()==EndCoord.y()){
+       int x=(BeginCoord.x()+EndCoord.x())/2;
+       double y1=BeginCoord.y()+sqrt(pow(r,2)-pow(x-BeginCoord.x(),2));
+       double y2=BeginCoord.y()-sqrt(pow(r,2)-pow(x-BeginCoord.x(),2));
+       if(Oritation==LEFT_TOP){
+           return y1<y2 ? QPoint(x,y1) : QPoint(x,y2);
+       }
+       else{
+           return y1>y2 ? QPoint(x,y1) : QPoint(x,y2);
+       }
+    }//处理斜率不存在的情况
     BeginCoord.ry()=-BeginCoord.y();
     EndCoord.ry()=-EndCoord.y();
     ConnectionCenter.ry()=-ConnectionCenter.y();
@@ -210,9 +230,15 @@ QPoint ImagePainterBase::GetCenterCoord(QPoint &BeginCoord, QPoint &EndCoord, do
     BeginCoord.ry()=-BeginCoord.y();
     EndCoord.ry()=-EndCoord.y();
     if(Oritation==LEFT_TOP){
+        if(x1==x2){
+            return y1<y2 ? QPoint(x1,y1) :QPoint(x2,y2);
+        }
         return x1<x2 ? QPoint(x1,y1) : QPoint(x2,y2);
     }
     else{
+        if(x1==x2){
+            return y1>y2 ? QPoint(x1,y1) :QPoint(x2,y2);
+        }
         return x1>x2 ? QPoint(x1,y1) : QPoint(x2,y2);
     }
 }
