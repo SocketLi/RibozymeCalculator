@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
+QT       += core gui network
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = Ribozyme_Calculator
@@ -27,13 +27,19 @@ SOURCES += \
         mainwindow.cpp \
     RibozymeCalculator.cpp \
     imagepainter.cpp \
-    imagepainterbase.cpp
+    imagepainterbase.cpp \
+    login.cpp \
+    waitingdialog.cpp
 
 HEADERS += \
         mainwindow.h \
     RibozymeCalculator.h \
     common.h \
-    imagepainter.h
+    imagepainter.h \
+    login.h \
+    waitingdialog.h
 
 FORMS += \
-        mainwindow.ui
+        mainwindow.ui \
+    login.ui \
+    waitingdialog.ui
