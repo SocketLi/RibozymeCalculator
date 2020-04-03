@@ -11,6 +11,17 @@
 #include<QTime>
 #include <QTimer>
 #include<QEventLoop>
+#include<QMessageBox>
+#include<QDir>
+#define STATUS "status" //JSON字段
+#define AVAILABLE_TIME "AvailableTime"
+enum{
+    BAD_REQUEST=0,
+    SUCCESS,
+    NO_AVAILABLE_TIME,
+    ERR_NAME_OR_PASSWORD,
+    SQL_QUERY_ERROR
+};
 namespace Ui {
 class Login;
 }
@@ -30,9 +41,15 @@ private:
     QString GenRequestContent();
     void StartWaiting();
     void OnRequestFinished();
+    void Exit();
+    bool IsResponseValid(const QJsonObject& RootObj);
+    void OnSeverError();
+    void closeEvent(QCloseEvent *e);
+    void SetUpRememberFile();
     Ui::Login *ui;
     QNetworkAccessManager* NetworkManager;
     QNetworkReply* ServerReply;
+    bool IsPass;
 };
 
 #endif // LOGIN_H
