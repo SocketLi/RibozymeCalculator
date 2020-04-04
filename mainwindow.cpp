@@ -72,7 +72,7 @@ void MainWindow::SetUpResultView()
 {
     ui->comboBox->clear();
     QStringList ZymeList;
-    ZymeList<<TWISTER_SISTER<<TWISTER<<PISTOL;
+    ZymeList<<TWISTER_SISTER<<TWISTER<<PISTOL<<HAMMER_HEAD;
     ui->comboBox->addItems(ZymeList);
     QStandardItemModel* model = new QStandardItemModel();
     QStringList labels = QObject::trUtf8(" 匹配序列(DNA),开始位置,结束位置,核酶序列,GC比例,TM值,cDNA序列").simplified().split(",");
@@ -113,6 +113,7 @@ bool MainWindow::eventFilter(QObject *watched, QEvent *event)
 void MainWindow::SetResultView(vector<vector<string>> CalculateResult)
 {
     QStandardItemModel* model=(QStandardItemModel*)ui->ResultView->model();
+    //model->clear();
     for(unsigned int i=0;i<CalculateResult.size();++i)
     {
         for(unsigned int j=0;j<CalculateResult[i].size();++j)

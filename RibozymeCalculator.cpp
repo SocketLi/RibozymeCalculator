@@ -1,6 +1,7 @@
 #include"RibozymeCalculator.h"
 using namespace std;
 extern unsigned int PistolGTBackPos;
+extern unsigned int HammerTCBackPos;
 string RibozymeCalculator::GenRegexPattern(string OldTarRNA)
 {
     string RegexPattern,TarRNA;
@@ -23,7 +24,7 @@ string RibozymeCalculator::GenRegexPattern(string OldTarRNA)
         {
             if (count)
             {
-                string TempPattern = "[A,G,C,T]{" + to_string(count) +"}" + TarRNA[i];
+                string TempPattern = "[AGCT]{" + to_string(count) +"}" + TarRNA[i];
                 RegexPattern += TempPattern;
                 count = 0;
             }
@@ -40,7 +41,7 @@ string RibozymeCalculator::GenRegexPattern(string OldTarRNA)
     }
     if (count)
     {
-        string TempPattern = "[A,G,C,T]{" + to_string(count) +"}";
+        string TempPattern = "[AGCT]{" + to_string(count) +"}";
         RegexPattern += TempPattern;
     }
     return RegexPattern;
@@ -48,29 +49,8 @@ string RibozymeCalculator::GenRegexPattern(string OldTarRNA)
 string RibozymeCalculator:: GenCDNA(string Ribozyme)
 {
     string cDNA;
-    for (auto it = Ribozyme.begin(); it != Ribozyme.end(); ++it)
-    {
-        switch (*it)
-        {
-        case 'A':
-            cDNA += 'T';
-            break;
-        case 'C':
-            cDNA += 'G';
-            break;
-        case 'G':
-            cDNA += 'C';
-            break;
-        case 'U':
-            cDNA += 'A';
-            break;
-        default:
-        {
-            qDebug() << "unkown char" << endl;
-            return "";
-            break;
-        }
-        }
+    for (auto it = Ribozyme.begin(); it != Ribozyme.end(); ++it){
+        cDNA.push_back(GenDNAByRNA(*it));
     }
     string T7Template = "CGCTATAGTGAGTCGTATTACC";
     cDNA += T7Template;
@@ -140,38 +120,20 @@ void RibozymeCalculator::CalculateTwisterSister(string& MatchRNA, smatch SubRege
         }
         else
         {
-            switch (*it)
-            {
-            case 'A':
-                Ribozyme += 'U';
-                break;
-            case 'C':
-                Ribozyme += 'G';
-                break;
-            case 'G':
-                Ribozyme += 'C';
-                break;
-            case 'T':
-                Ribozyme += 'A';
-                break;
-            default:
-            {
-                qDebug() << "unkown char" << endl;
-                break;
-            }
+            Ribozyme.push_back(GenRNAByDNA(*it));
         }
-      }
     }
 }
 void RibozymeCalculator::CalculateRibozymeParas(string& MatchRNA, string& Ribozyme, unsigned int MatchBeginPos,
                                                 unsigned int MatchEndPos,string& ZymeType, vector<string> &CalculateResultItem)
 {
+    string tmp=Ribozyme;
     string cDNA = GenCDNA(Ribozyme);
     CalculateResultItem.push_back(MatchRNA);
     CalculateResultItem.push_back(to_string(MatchBeginPos));
     CalculateResultItem.push_back(to_string(MatchEndPos));
-    reverse(Ribozyme.begin(),Ribozyme.end());
-    CalculateResultItem.push_back(Ribozyme);
+    reverse(tmp.begin(),tmp.end());
+    CalculateResultItem.push_back(tmp);
     CalculateResultItem.push_back(CalculateGCPercent(Ribozyme)+"%");//GC
     CalculateResultItem.push_back(CalculateTM(MatchRNA,ZymeType));//TM
     CalculateResultItem.push_back(cDNA);
@@ -187,29 +149,23 @@ void RibozymeCalculator::CalculatePistol(string &MatchRNA, string &Ribozyme)
            continue;
        }
        else{
-           switch (*it)
-           {
-           case 'A':
-               Ribozyme += 'U';
-               break;
-           case 'C':
-               Ribozyme += 'G';
-               break;
-           case 'G':
-               Ribozyme += 'C';
-               break;
-           case 'T':
-               Ribozyme += 'A';
-               break;
-           default:
-           {
-               qDebug() << "unkown char" << endl;
-               break;
-           }
+           Ribozyme.push_back(GenRNAByDNA(*it));
        }
-   }
   }
   Ribozyme+="GAUAAAUUGCACCGGGAUUGGUGC";
+}
+void RibozymeCalculator::CalculateHammer(string &MatchRNA, string &Ribozyme)
+{
+    Ribozyme.clear();
+    for(auto it=MatchRNA.begin();it!=MatchRNA.end();++it){
+        if(it==MatchRNA.begin()+HammerTCBeginPos+1){
+            Ribozyme+="AAGCAGGUCAGAGUAGUC";
+        }
+        else{
+            Ribozyme.push_back(GenRNAByDNA(*it));
+        }
+   }
+   Ribozyme+="UAAAAUAUCUGAGGACCAACAGAA";
 }
 void RibozymeCalculator::CalculateTwister(string& MatchRNA,smatch SubRegexResult,string& Ribozyme)
 {
@@ -231,27 +187,8 @@ void RibozymeCalculator::CalculateTwister(string& MatchRNA,smatch SubRegexResult
         }
         else
         {
-            switch (*it)
-            {
-            case 'A':
-                Ribozyme += 'U';
-                break;
-            case 'C':
-                Ribozyme += 'G';
-                break;
-            case 'G':
-                Ribozyme += 'C';
-                break;
-            case 'T':
-                Ribozyme += 'A';
-                break;
-            default:
-            {
-                qDebug() << "unkown char" << endl;
-                break;
-            }
+            Ribozyme.push_back(GenRNAByDNA(*it));
         }
-      }
     }
 }
 int RibozymeCalculator::Calculate(string OldDNASeq, string TarRNA,string ZymeType,std::vector<std::vector<std::string>>& CalculateResult)
@@ -275,17 +212,13 @@ int RibozymeCalculator::Calculate(string OldDNASeq, string TarRNA,string ZymeTyp
             iRet=ERROR;
             break;
         }
-        if(ZymeType=="Pistol"){
-            unsigned int pos=TarRNA.find("GT");
-            if(pos!=TarRNA.npos){
-                PistolGTBeginPos=pos;
-                PistolGTBackPos=TarRNA.length()-pos-1;
-            }
-            else{
-                DEBUG_WARN("Invalid Pistol mark");
-                iRet=ERROR;
-                break;
-            }
+        if(ZymeType==PISTOL){
+            PistolGTBeginPos=TarRNA.find("GT");
+            PistolGTBackPos=TarRNA.length()-PistolGTBeginPos-1;
+        }
+        else if(ZymeType==HAMMER_HEAD){
+            HammerTCBeginPos=TarRNA.find("TC");
+            HammerTCBackPos=TarRNA.length()-HammerTCBeginPos-1;
         }
         regex Pattern(RegexPattern);
         string::const_iterator iterStart = DNASeq.begin();
@@ -298,14 +231,17 @@ int RibozymeCalculator::Calculate(string OldDNASeq, string TarRNA,string ZymeTyp
             unsigned int MatchBeginPos=RegexResult[0].first-DNASeq.begin();
             unsigned int MatchEndPos=RegexResult[0].second-DNASeq.begin();
             regex SubPattern;
-            if(ZymeType=="Twister sister"){
-                   SubPattern="GCT[A,G,C,T]A[A,G,C,T]"; //  ("[A,G,C,T]AA[A,G,C,T]{4,4}GC");
+            if(ZymeType==TWISTER_SISTER){
+                   SubPattern="GCT[AGCT]A[AGCT]"; //  ("[A,G,C,T]AA[A,G,C,T]{4,4}GC");
             }
-            else if(ZymeType=="Twister"){
-                SubPattern="[A,G,C,T]AA[A,G,C,T]{4,4}GC";
+            else if(ZymeType==TWISTER){
+                SubPattern="[AGCT]AA[AGCT]{4}GC";
             }
-            else if(ZymeType=="Pistol"){
+            else if(ZymeType==PISTOL){
                 SubPattern="GT";
+            }
+            else if(ZymeType==HAMMER_HEAD){
+                SubPattern="TC";
             }
             string::const_iterator SubPatternBegin = MatchRNA.begin();
             string::const_iterator SubPatternEnd = MatchRNA.end();
@@ -313,91 +249,73 @@ int RibozymeCalculator::Calculate(string OldDNASeq, string TarRNA,string ZymeTyp
             if (regex_search(SubPatternBegin, SubPatternEnd, SubRegexResult, SubPattern))
             {
                 string Ribozyme;
-                if(ZymeType=="Twister sister"){
+                if(ZymeType==TWISTER_SISTER){
                     CalculateTwisterSister(MatchRNA,SubRegexResult,Ribozyme);
                     CalculateRibozymeParas(MatchRNA,Ribozyme,MatchBeginPos+1,MatchEndPos,ZymeType,CalculateResultItem);
                     CalculateResult.push_back(CalculateResultItem);
                 }
-                else if(ZymeType=="Twister"){
-                    for(unsigned int i=0;i<=TWISTER_MAX_BACK_LENGTH;++i){
-                        if(i){
+                else if(ZymeType==TWISTER){
+                    CalculateTwister(MatchRNA,SubRegexResult,Ribozyme);
+                    CalculateResultItem.clear();
+                    CalculateRibozymeParas(MatchRNA,Ribozyme,MatchBeginPos+1,MatchEndPos,ZymeType,CalculateResultItem);
+                    CalculateResult.push_back(CalculateResultItem);
+                    for(unsigned int i=1;i<=TWISTER_MAX_BACK_LENGTH;++i){
                             if(MatchEndPos+i<DNASeq.length()){ //防止向后越界
                                 MatchRNA.push_back(DNASeq[MatchEndPos+i-1]);
+                                Ribozyme.push_back(GenRNAByDNA(MatchRNA.back()));
                             }
                             else{
                                 break;
                             }
-                        }
-                        else{
-                            CalculateTwister(MatchRNA,SubRegexResult,Ribozyme);
-                        }
-                        CalculateResultItem.clear();
-                   if(i) {
-                     switch(MatchRNA.back()){
-                        case 'A':
-                           Ribozyme.push_back('U');
-                           break;
-                        case 'G':
-                           Ribozyme.push_back('C');
-                           break;
-                        case 'C':
-                           Ribozyme.push_back('G');
-                           break;
-                        case 'T':
-                           Ribozyme.push_back('A');
-                           break;
-                        default:
-                            break;
-                        }
-                     }
-                        CalculateRibozymeParas(MatchRNA,Ribozyme,MatchBeginPos+1,MatchEndPos+i,ZymeType,CalculateResultItem);
-                        CalculateResult.push_back(CalculateResultItem);
-                    }
+                            CalculateResultItem.clear();
+                            CalculateRibozymeParas(MatchRNA,Ribozyme,MatchBeginPos+1,MatchEndPos+i,ZymeType,CalculateResultItem);
+                            CalculateResult.push_back(CalculateResultItem);
+                        }                
                 }
-                else if(ZymeType=="Pistol"){
-                    for(int i=0;i<=PISTOL_MAX_FRONT_LENGTH;++i){
-                        if(i){
+                else if(ZymeType==PISTOL){
+                    CalculatePistol(MatchRNA,Ribozyme);
+                    CalculateResultItem.clear();
+                    CalculateRibozymeParas(MatchRNA,Ribozyme,MatchBeginPos+1,MatchEndPos,ZymeType,CalculateResultItem);
+                    CalculateResult.push_back(CalculateResultItem);
+                    for(int i=1;i<=PISTOL_MAX_FRONT_LENGTH;++i){
                             if((int)MatchBeginPos-i>=0){  //防止向前越界
                                MatchRNA.insert(0,1,DNASeq[MatchBeginPos-i]);
+                               Ribozyme.insert(0,1,GenRNAByDNA(MatchRNA.front()));
                             }
                             else{
                                break;
                             }
+                            CalculateResultItem.clear();
+                            CalculateRibozymeParas(MatchRNA,Ribozyme,MatchBeginPos-i+1,MatchEndPos,ZymeType,CalculateResultItem);
+                            CalculateResult.push_back(CalculateResultItem);
                         }
-                        else{
-                             CalculatePistol(MatchRNA,Ribozyme);
-                        }
-                        CalculateResultItem.clear();
-                    if(i) {
-                     switch(MatchRNA.front()){
-                        case 'A':
-                           Ribozyme.insert(0,1,'U');
-                           break;
-                        case 'G':
-                           Ribozyme.insert(0,1,'C');
-                           break;
-                        case 'C':
-                           Ribozyme.insert(0,1,'G');
-                           break;
-                        case 'T':
-                           Ribozyme.insert(0,1,'A');
-                           break;
-                        default:
-                            break;
-                        }
-                     }
-                     CalculateRibozymeParas(MatchRNA,Ribozyme,MatchBeginPos-i+1,MatchEndPos,ZymeType,CalculateResultItem);
-                     CalculateResult.push_back(CalculateResultItem);
-                  }
                 }
-            }
-            if(ZymeType!="Pistol"){
+                else if(ZymeType==HAMMER_HEAD){
+                    CalculateHammer(MatchRNA,Ribozyme);
+                    CalculateResultItem.clear();
+                    CalculateRibozymeParas(MatchRNA,Ribozyme,MatchBeginPos+1,MatchEndPos,ZymeType,CalculateResultItem);
+                    CalculateResult.push_back(CalculateResultItem);
+                    for(int i=1;i<=HAMMER_MAX_FRONT_LENGTH;++i){
+                            if((int)MatchBeginPos-i>=0){  //防止向前越界
+                               MatchRNA.insert(0,1,DNASeq[MatchBeginPos-i]);
+                               Ribozyme.insert(0,1,GenRNAByDNA(MatchRNA.front()));
+                            }
+                            else{
+                               break;
+                            }
+                            CalculateResultItem.clear();
+                            CalculateRibozymeParas(MatchRNA,Ribozyme,MatchBeginPos-i+1,MatchEndPos,ZymeType,CalculateResultItem);
+                            CalculateResult.push_back(CalculateResultItem);
+                        }
+                }
+            if(ZymeType!=PISTOL && ZymeType!=HAMMER_HEAD){//更新搜索起始位置,搜索剩下的字符串
                 iterStart = RegexResult[0].second;
             }
             else{
                 iterStart=RegexResult[0].first+2;
-            }                                  //更新搜索起始位置,搜索剩下的字符串
+            }
         }
+      }
     } while (false);
     return iRet;
 }

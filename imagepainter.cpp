@@ -1,5 +1,6 @@
 #include"imagepainter.h"
 unsigned int PistolGTBackPos=0; //pistol 筛选标记中G的G距最后一个N的距离，绘图时使用
+unsigned int HammerTCBackPos=0; //意义同上
 void TwisterSisterPainter::DrawRibozymeImage(const string& MatchRNASeq,unsigned int PictureWidth,unsigned int PictureHeight,QPainter *Painter)
 {
     QFont PictureFont("Microsoft YaHei",PICTURE_FONT_SIZE,75);
@@ -182,7 +183,7 @@ QPoint TwisterPainter::DrawConservativeSeq(QPainter *Painter,const string &Match
     DrawCriclePathBase(Painter,CircleSeq,FrontCircleBegin,FrontCircleEnd,45,false,LEFT_TOP);
     unsigned int dy=16,i=0; //画中间配对的四个
     for(i=4;i<8;++i){
-        DrawBasePair(Painter,FrontPartEndPos.x(),FrontPartEndPos.y()-dy*(i-4),MatchRNASeq[i],25,90,RIGHT_DOWN);
+        DrawBasePair(Painter,FrontPartEndPos.x(),FrontPartEndPos.y()-dy*(i-4),MatchRNASeq[i-1],25,90,RIGHT_DOWN);
     }
     //画AAAUA左边的GC
     DrawBase(Painter,FrontPartEndPos.x()-1.5*PICTURE_FONT_SIZE,FrontPartEndPos.y()-dy*(i-4.5),'G');
@@ -210,7 +211,6 @@ QPoint TwisterPainter::DrawConservativeSeq(QPainter *Painter,const string &Match
     NextBegin.ry()+=PICTURE_FONT_SIZE;
     return TransCoord(NextBegin,0,25,RIGHT_DOWN);
 }
-
 RibozymeImagePainter::RibozymeImagePainter(const string& RibozymeType)
 {
     if(RibozymeType==TWISTER_SISTER){

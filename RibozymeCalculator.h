@@ -15,6 +15,7 @@
 #define ERROR -1
 #define TWISTER_MAX_BACK_LENGTH 8
 #define PISTOL_MAX_FRONT_LENGTH 10
+#define HAMMER_MAX_FRONT_LENGTH 5
 using namespace std;
 
 class RibozymeCalculator
@@ -31,9 +32,10 @@ public:
    void CalculateTwisterSister(string& MatchRNA,smatch SubRegexResult,string& Ribozyme);
    void CalculateTwister(string& MatchRNA, smatch SubRegexResult,string& Ribozyme);
    void CalculatePistol(string& MatchRNA,string& Ribozyme);
+   void CalculateHammer(string& MatchRNA,string& Ribozyme);
    void CalculateRibozymeParas(string& MatchRNA, string& Ribozyme, unsigned int MatchBeginPos,
                                unsigned int MatchEndPos,string& ZymeType, vector<string> &CalculateResultItem);
-   unsigned int PistolGTBeginPos;
+   unsigned int PistolGTBeginPos,HammerTCBeginPos;
 };
 
 #endif // RIBOZYME_CALCULATOR_H
