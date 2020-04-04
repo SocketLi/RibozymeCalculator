@@ -34,6 +34,8 @@ class TwisterSisterPainter:public ImagePainterBase{
 class TwisterPainter:public ImagePainterBase{
     public:
         void DrawRibozymeImage(const string& MatchRNASeq,unsigned int PictureWidth,unsigned int PictureHeight,QPainter *Painter);
+    protected:
+        QPoint DrawConservativeSeq(QPainter *Painter,const string& MatchRNASeq,const QPoint& BeginPos); //返回结束点的坐标，用于画GC以后的部分
 
 };
 class PistolPainter:public ImagePainterBase{

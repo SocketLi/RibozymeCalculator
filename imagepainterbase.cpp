@@ -78,7 +78,14 @@ QPoint ImagePainterBase::TransCoord(const QPoint &OriginCoord, double Degrees, d
         }
         else{
             NewPoint.setX(OriginCoord.x()+PairGap*qSin(Degrees/180*M_PI));
-            NewPoint.setY(OriginCoord.y()-PairGap*qCos(Degrees/180*M_PI));
+            //qCos(Degrees/180*M_PI)在Degress为90的时候不为0
+            if(Degrees==90){
+                NewPoint.setY(OriginCoord.y());
+            }
+            else{
+                NewPoint.setY(OriginCoord.y()-PairGap*qCos(Degrees/180*M_PI));
+            }
+
         }
     }
     return NewPoint;
@@ -87,14 +94,14 @@ void ImagePainterBase::DrawMatchLine(QPainter *Painter, const QPoint &BaseCoord,
 {
     QPoint LineBeginCoord,LineEndCoord;
     if(!Degrees){
+        Painter->setRenderHints(QPainter::Antialiasing, false);//启用会导致此时画出的匹配线过粗，不美观
         if(BaseCoord.x()>MatchedBaseCoord.x()){//判断两个碱基的位置关系从而确定直线的两个端点
-            Painter->setRenderHints(QPainter::Antialiasing, false);//启用会导致此时画出的匹配线过粗，不美观
             SetPointCoord(LineBeginCoord,MatchedBaseCoord.x()+PICTURE_FONT_SIZE+LOW_BASE_SPACE*2,MatchedBaseCoord.y()-PICTURE_FONT_SIZE/2);
             SetPointCoord(LineEndCoord,BaseCoord.x()-LOW_BASE_SPACE*2,BaseCoord.y()-PICTURE_FONT_SIZE/2);
         }
         else{
-            SetPointCoord(LineEndCoord,BaseCoord.x()+PICTURE_FONT_SIZE+LOW_BASE_SPACE*2,BaseCoord.y()-PICTURE_FONT_SIZE/2);
-            SetPointCoord(LineBeginCoord,MatchedBaseCoord.x()-LOW_BASE_SPACE*2,MatchedBaseCoord.y()-PICTURE_FONT_SIZE/2);
+            SetPointCoord(LineBeginCoord,BaseCoord.x()+PICTURE_FONT_SIZE+LOW_BASE_SPACE*2,BaseCoord.y()-PICTURE_FONT_SIZE/2);
+            SetPointCoord(LineEndCoord,MatchedBaseCoord.x()-LOW_BASE_SPACE*2,MatchedBaseCoord.y()-PICTURE_FONT_SIZE/2);
         }
     }
     else{
@@ -152,14 +159,28 @@ void ImagePainterBase::DrawMatchLine(QPainter *Painter, const QPoint &BaseCoord,
     Painter->drawLine(LineBeginCoord,LineEndCoord);
     Painter->setRenderHints(QPainter::Antialiasing,true);
 }
-double ImagePainterBase::GetLineDegree(const QPoint &p1, const QPoint &p2)
+double ImagePainterBase::GetLineDegree(const QPoint &p1, const QPoint &p2) //取值范围0到2 pi 这里的line应该为从p1到p2的向量
+//该函数获取的是向量与x轴正半轴的夹角
 {
     if(p1.x()==p2.x()){
         return M_PI/2;
     }
     else{
-        double Degrees=qAtan(double(p1.y()-p2.y())/(p1.x()-p2.x()));
-        return Degrees>=0 ? Degrees : M_PI+Degrees;
+       double Degrees=qAtan(double(p1.y()-p2.y())/(p1.x()-p2.x()));
+       //因为反正切的取值范围是-2分之pi到2分之pi,所以需要判断象限去获取度数
+       if(p2.x()>p1.x() && p2.y()>=p1.y()){
+           return Degrees; //一象限
+       }
+       else if(p2.x()<p1.x() && p2.y()>=p1.y()){
+           return Degrees+M_PI;
+       }
+       else if(p2.x()<p1.x() && p2.y()<p1.y()){
+           return Degrees+M_PI;
+       }
+       else if(p2.x()>p1.x() && p2.y()<p1.y()){
+           return 2*M_PI+Degrees;
+       }
+       return Degrees;
     }
 }
 void ImagePainterBase::DrawCriclePathBase(QPainter *Painter,const string& RNAseq,QPoint &BeginCoord, QPoint &EndCoord, double r,bool IsClockWise,bool Oritation)
@@ -176,8 +197,8 @@ void ImagePainterBase::DrawCriclePathBase(QPainter *Painter,const string& RNAseq
         return;
     }
     QPoint Center=GetCenterCoord(BeginCoord,EndCoord,r,Oritation);//获取圆心
-    double BeginDegrees=GetLineDegree(BeginCoord,Center);
-    double EndDegrees=GetLineDegree(EndCoord,Center);
+    double BeginDegrees=GetLineDegree(Center,BeginCoord);
+    double EndDegrees=GetLineDegree(Center,EndCoord);
     //获取开始和结束的弧度
     Painter->save();//开始绘图
     Painter->translate(Center.x(),Center.y());

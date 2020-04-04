@@ -24,7 +24,6 @@ Login::Login(QWidget *parent) :
                 ui->RemPasswd->setChecked(false);
             }
             else{
-                DEBUG_WARN(QString(QByteArray::fromBase64(Password)));
                 ui->Passwd->setText(QString(QByteArray::fromBase64(Password)));
                 ui->RemPasswd->setChecked(true);
             }
@@ -110,8 +109,7 @@ void Login::OnRequestFinished()
     if(statusCode.isValid()){
         QNetworkReply::NetworkError err = ServerReply->error();
         if(err != QNetworkReply::NoError) {
-            DEBUG_WARN(ServerReply->readAll());
-            DEBUG_WARN("in error");
+            OnSeverError();
             DEBUG_WARN(ServerReply->errorString());
         }
         else {//收到数据
@@ -143,31 +141,31 @@ void Login::OnRequestFinished()
                     SetUpRememberFile();
                     IsPass=true;
                     Login::close();
-                    return;
                 }
                 else if(Status==NO_AVAILABLE_TIME){
                     QMessageBox::critical(this,"ERROR","Sorry,your license has expired!",QMessageBox::Ok);
-                    return;
                 }
                 else if(Status==ERR_NAME_OR_PASSWORD){
                     QMessageBox::critical(this,"ERROR","Invalid username or password!",QMessageBox::Ok);
-                    return;
                 }
                 else{
                     OnSeverError();
-                    return;
                 }
             }
             else{
                 OnSeverError();
-                return;
             }
-            delete ServerReply;
         }
     }
+    else{
+         OnSeverError();
+    }
+    delete ServerReply;
+    return;
  }
 void Login::OnSeverError()
 {
+    IsPass=false;
     QMessageBox::critical(this,"ERROR","Server returns an error,please try again later",QMessageBox::Ok);
 }
 void Login::closeEvent(QCloseEvent *e)

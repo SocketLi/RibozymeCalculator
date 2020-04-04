@@ -134,6 +134,83 @@ void PistolPainter::DrawConservativeSeq(QPainter *Painter,const QPoint& BeginCoo
     QPoint CircleEndPos=TransCoord(CircleBeginPos,90,25);
     DrawCriclePathBase(Painter,ConservativeSeq,CircleBeginPos,CircleEndPos,30,false);
 }
+void TwisterPainter::DrawRibozymeImage(const string &MatchRNASeq, unsigned int PictureWidth, unsigned int PictureHeight, QPainter *Painter)
+{
+    QFont PictureFont("Microsoft YaHei",PICTURE_FONT_SIZE,75);
+    Painter->setFont(PictureFont);
+    smatch RegexResult;
+    regex RegexPartern("[AGCT]AA[AGCT]{4}GC"); //NAANNNNGC
+    int BeginX=((sqrt(5)-1)/2)*PictureWidth;
+    int BeginY=PictureHeight-80;
+    double Dy=16,Dx=16;
+    if(regex_search(MatchRNASeq.begin(),MatchRNASeq.end(),RegexResult,RegexPartern)){
+        int i=0; // 匹配部分之前的计数
+        QPoint Mark5Pos(BeginX-10,BeginY+20);
+        Painter->drawText(Mark5Pos,"5'");
+        Painter->drawText(TransCoord(Mark5Pos,90,47,RIGHT_DOWN),"3'");
+        QPoint ConservativeSeqEnd;
+        for(auto it=MatchRNASeq.begin();it!=MatchRNASeq.end();++it){
+            if(it<RegexResult[0].first){
+                DrawBasePair(Painter,BeginX,BeginY-Dy*i,*it,25,90,RIGHT_DOWN);
+                i++;
+            }
+            else if(it==RegexResult[0].first) {
+                QPoint ConservativeSeqBegin;
+                SetPointCoord(ConservativeSeqBegin,BeginX,BeginY-Dy*(i-1));
+                ConservativeSeqEnd=DrawConservativeSeq(Painter,MatchRNASeq.substr(i,9),ConservativeSeqBegin);
+                it+=8;
+                i=0;
+            }
+            else{
+                DrawBasePair(Painter,ConservativeSeqEnd.x()-Dx*i,ConservativeSeqEnd.y(),*it,25,0);
+                i++;
+            }
+        }
+    }
+    return;
+}
+QPoint TwisterPainter::DrawConservativeSeq(QPainter *Painter,const string &MatchRNASeq, const QPoint &BeginPos)
+{
+    DrawBase(Painter,BeginPos.x()-15,BeginPos.y()-18,MatchRNASeq[0]); //先画前三个不配对
+    DrawBase(Painter,BeginPos.x()-15-PICTURE_FONT_SIZE,BeginPos.y()-18-2*PICTURE_FONT_SIZE,MatchRNASeq[1]);
+    DrawBase(Painter,BeginPos.x()-15,BeginPos.y()-18-3.5*PICTURE_FONT_SIZE,MatchRNASeq[2]);
+    QPoint FrontPartEndPos;//画不配对的那些右边的5个
+    SetPointCoord(FrontPartEndPos,BeginPos.x(),BeginPos.y()-80);
+    QPoint FrontCircleBegin=TransCoord(BeginPos,90,25,RIGHT_DOWN);
+    QPoint FrontCircleEnd=TransCoord(FrontPartEndPos,90,25,RIGHT_DOWN);
+    string CircleSeq="GGGAG";
+    DrawCriclePathBase(Painter,CircleSeq,FrontCircleBegin,FrontCircleEnd,45,false,LEFT_TOP);
+    unsigned int dy=16,i=0; //画中间配对的四个
+    for(i=4;i<8;++i){
+        DrawBasePair(Painter,FrontPartEndPos.x(),FrontPartEndPos.y()-dy*(i-4),MatchRNASeq[i],25,90,RIGHT_DOWN);
+    }
+    //画AAAUA左边的GC
+    DrawBase(Painter,FrontPartEndPos.x()-1.5*PICTURE_FONT_SIZE,FrontPartEndPos.y()-dy*(i-4.5),'G');
+    DrawBase(Painter,FrontPartEndPos.x()-2.5*PICTURE_FONT_SIZE,FrontPartEndPos.y()-dy*(i-3.5),'C');
+    //画AAAUA序列
+    QPoint RightBackPartBegin=TransCoord(QPoint(FrontPartEndPos.x(),FrontPartEndPos.y()-dy*(i-5)),90,25,RIGHT_DOWN);
+    DrawBase(Painter,RightBackPartBegin.x()+PICTURE_FONT_SIZE,RightBackPartBegin.y()-PICTURE_FONT_SIZE,'A');
+    DrawBase(Painter,RightBackPartBegin.x()+2*PICTURE_FONT_SIZE,RightBackPartBegin.y()-PICTURE_FONT_SIZE*2,'A');
+    DrawBase(Painter,RightBackPartBegin.x()+1.5*PICTURE_FONT_SIZE,RightBackPartBegin.y()-PICTURE_FONT_SIZE*3.5,'A');
+    DrawBase(Painter,RightBackPartBegin.x(),RightBackPartBegin.y()-PICTURE_FONT_SIZE*4,'U');
+    DrawBase(Painter,RightBackPartBegin.x()-1.5*PICTURE_FONT_SIZE,RightBackPartBegin.y()-PICTURE_FONT_SIZE*4.5,'A');
+    //画AAAUA之后的部分
+    QPoint FinalPartBegin(RightBackPartBegin.x()-2.5*PICTURE_FONT_SIZE,RightBackPartBegin.y()-PICTURE_FONT_SIZE*5.5);
+    string seq="GGCC";
+    for(i=0;i<seq.length();++i){
+        DrawBasePair(Painter,FinalPartBegin.x(),FinalPartBegin.y()-dy*i,seq[i],25,90);
+    }
+    CircleSeq="CGAACCCU";
+    QPoint Begin(FinalPartBegin.x(),FinalPartBegin.y()-dy*(i-1));
+    QPoint End=TransCoord(Begin,90,25);
+    DrawCriclePathBase(Painter,CircleSeq,Begin,End,30,false,LEFT_TOP);
+    //生成后方序列开始点的坐标
+    QPoint NextBegin=TransCoord(FinalPartBegin,90,25);
+    NextBegin.rx()-=PICTURE_FONT_SIZE;
+    NextBegin.ry()+=PICTURE_FONT_SIZE;
+    return TransCoord(NextBegin,0,25,RIGHT_DOWN);
+}
+
 RibozymeImagePainter::RibozymeImagePainter(const string& RibozymeType)
 {
     if(RibozymeType==TWISTER_SISTER){
@@ -141,6 +218,9 @@ RibozymeImagePainter::RibozymeImagePainter(const string& RibozymeType)
     }
     else if(RibozymeType==PISTOL){
         ImagePainter=new PistolPainter();
+    }
+    else if(RibozymeType==TWISTER){
+        ImagePainter=new TwisterPainter();
     }
 }
 void RibozymeImagePainter::DrawRibozymeImage(const string& MatchRNASeq,unsigned int PictureWidth,unsigned int PictureHeight,QPainter *Painter)
