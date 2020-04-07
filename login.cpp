@@ -4,6 +4,7 @@
 #include "waitingdialog.h"
 #include<QCloseEvent>
 #include<windows.h>
+#include<QCryptographicHash>
 using namespace std;
 Login::Login(QWidget *parent) :
     QDialog(parent),
@@ -98,7 +99,9 @@ QString Login::GenRequestContent()
     RequestContent.insert("type","login");
     QString Username=ui->UserName->text().simplified();
     RequestContent.insert("username",Username);
-    RequestContent.insert("password",ui->Passwd->text());
+    QByteArray Password=ui->Passwd->text().toUtf8();
+    QString Md5Password=QCryptographicHash::hash(Password,QCryptographicHash::Md5).toHex();
+    RequestContent.insert("password",Md5Password);
     QJsonDocument JsonDocument;
     JsonDocument.setObject(RequestContent);
     return QString(JsonDocument.toJson(QJsonDocument::Compact));

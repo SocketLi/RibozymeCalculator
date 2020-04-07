@@ -44,6 +44,13 @@ class PistolPainter:public ImagePainterBase{
     protected:
         void DrawConservativeSeq(QPainter *Painter,const QPoint& BeginCoord);
 };
+class HammerHeadPainter:public ImagePainterBase{
+    public:
+        void DrawRibozymeImage(const string& MatchRNASeq,unsigned int PictureWidth,unsigned int PictureHeight,QPainter *Painter);
+    protected:
+        QPoint DrawConservativeSeqPart1(QPainter *Painter, QPoint& BeginPos); //返回后续部分的起点
+        void DrawConservativeSeqPart2(QPainter *Painter,const QPoint& BeginPos);
+};
 class RibozymeImagePainter{
     public:
         RibozymeImagePainter(const string& RibozymeType);

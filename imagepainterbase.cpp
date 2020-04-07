@@ -163,7 +163,12 @@ double ImagePainterBase::GetLineDegree(const QPoint &p1, const QPoint &p2) //取
 //该函数获取的是向量与x轴正半轴的夹角
 {
     if(p1.x()==p2.x()){
-        return M_PI/2;
+        if(p2.y()>p1.y()){
+            return M_PI/2;
+        }
+        else{
+            return 3*M_PI/2;
+        }
     }
     else{
        double Degrees=qAtan(double(p1.y()-p2.y())/(p1.x()-p2.x()));
@@ -207,7 +212,7 @@ void ImagePainterBase::DrawCriclePathBase(QPainter *Painter,const string& RNAseq
         RotateAngle= EndDegrees>BeginDegrees ? (EndDegrees-BeginDegrees)/(RNAseq.length()+1) : (2*M_PI-(EndDegrees-BeginDegrees))/(RNAseq.length()+1);
     }
     else{
-        RotateAngle= EndDegrees>BeginDegrees ? -(2*M_PI-(EndDegrees-BeginDegrees))/(RNAseq.length()+1): -(EndDegrees-BeginDegrees)/(RNAseq.length()+1);
+        RotateAngle= EndDegrees>BeginDegrees ? -(2*M_PI-(EndDegrees-BeginDegrees))/(RNAseq.length()+1):(EndDegrees-BeginDegrees)/(RNAseq.length()+1);
     }
     for(unsigned int i=0;i<RNAseq.length();++i){
         double x=r*qCos(BeginDegrees+RotateAngle*(i+1));

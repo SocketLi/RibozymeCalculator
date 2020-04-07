@@ -182,7 +182,7 @@ QPoint TwisterPainter::DrawConservativeSeq(QPainter *Painter,const string &Match
     string CircleSeq="GGGAG";
     DrawCriclePathBase(Painter,CircleSeq,FrontCircleBegin,FrontCircleEnd,45,false,LEFT_TOP);
     unsigned int dy=16,i=0; //画中间配对的四个
-    for(i=4;i<8;++i){
+    for(i=4;i<8;++i){//i应该是从3开始的，但是我写完了才发现这些，而且下面有些坐标的计算和错误的结果有关，所以将错就错MatchRNASeq的下标就是i-1了
         DrawBasePair(Painter,FrontPartEndPos.x(),FrontPartEndPos.y()-dy*(i-4),MatchRNASeq[i-1],25,90,RIGHT_DOWN);
     }
     //画AAAUA左边的GC
@@ -211,6 +211,78 @@ QPoint TwisterPainter::DrawConservativeSeq(QPainter *Painter,const string &Match
     NextBegin.ry()+=PICTURE_FONT_SIZE;
     return TransCoord(NextBegin,0,25,RIGHT_DOWN);
 }
+void HammerHeadPainter::DrawRibozymeImage(const string &MatchRNASeq, unsigned int PictureWidth, unsigned int PictureHeight, QPainter *Painter)
+{
+    QFont PictureFont("Microsoft YaHei",PICTURE_FONT_SIZE,75);
+    Painter->setFont(PictureFont);
+    double Dx=14,Dy=20,ImageBeginX=((sqrt(5)-1)/2)*PictureWidth,ImageBeginY=75;
+    QPoint SecondMatchPartBegin;
+    unsigned int k=0;
+    QPoint Mark5Coord(ImageBeginX,ImageBeginY-Dy);
+    Painter->drawText(Mark5Coord,"5'");
+    Painter->drawText(TransCoord(Mark5Coord,90,25),"3'");
+    for(unsigned int i=0;i<MatchRNASeq.length();++i){
+        if(i<MatchRNASeq.length()-HammerTCBackPos+1){
+            DrawBasePair(Painter,ImageBeginX,ImageBeginY+Dy*i,MatchRNASeq[i],25,90);
+        }
+        else if(i==MatchRNASeq.length()-HammerTCBackPos+1){
+            QPoint Begin=TransCoord(QPoint(ImageBeginX,ImageBeginY+Dy*(i-1)),90,25);
+            DrawBase(Painter,ImageBeginX+PICTURE_FONT_SIZE,ImageBeginY+Dy*(i-1)+PICTURE_FONT_SIZE,MatchRNASeq[i]);
+            SecondMatchPartBegin=DrawConservativeSeqPart1(Painter,Begin);
+        }
+        else{
+            DrawBasePair(Painter,SecondMatchPartBegin.x()+Dx*k,SecondMatchPartBegin.y(),MatchRNASeq[i],25,0,RIGHT_DOWN);
+            k++;
+        }
+    }
+    QPoint ConservativeSeqPart2Begin;
+    SetPointCoord(ConservativeSeqPart2Begin,SecondMatchPartBegin.x()+Dx*(k-1)+12,SecondMatchPartBegin.y()+34);
+    DrawConservativeSeqPart2(Painter,ConservativeSeqPart2Begin);
+}
+QPoint HammerHeadPainter::DrawConservativeSeqPart1(QPainter *Painter,QPoint &BeginPos)
+{
+    string seq="AAG";
+    int r=60;
+    QPoint AAGSeqEndPos;//AAG所在圆形轨迹的终点
+    SetPointCoord(AAGSeqEndPos,BeginPos.x()-60,BeginPos.y()+30);
+    DrawCriclePathBase(Painter,seq,BeginPos,AAGSeqEndPos,r,false,RIGHT_DOWN);
+    //画第一段保守序列配对的那对CG
+    DrawBasePair(Painter,AAGSeqEndPos.x(),AAGSeqEndPos.y(),'C',25,0,RIGHT_DOWN);
+    //画保守序列配对GC左边的圆
+    QPoint FirstCircleEnd=TransCoord(AAGSeqEndPos,0,25,RIGHT_DOWN);
+    seq="AGGUCA";
+    DrawCriclePathBase(Painter,seq,AAGSeqEndPos,FirstCircleEnd,25,false);
+    //GC左边圆的终点也是右边圆的起点
+    QPoint SeccondCircleEnd;
+    seq="AGUAGUC";
+    SetPointCoord(SeccondCircleEnd,FirstCircleEnd.x()+100,FirstCircleEnd.y());
+    DrawCriclePathBase(Painter,seq,FirstCircleEnd,SeccondCircleEnd,50,false,LEFT_TOP);
+    //返回下一部分的起点
+    return TransCoord(SeccondCircleEnd,0,25,LEFT_TOP);
+}
+void HammerHeadPainter::DrawConservativeSeqPart2(QPainter *Painter, const QPoint &BeginPos)
+{
+    string seq="UAAAAUA";
+    unsigned int dy=18,i=0;
+    for(;i<seq.length();++i){
+        DrawBase(Painter,BeginPos.x(),BeginPos.y()+dy*i,seq[i]);
+    }
+    //画最底下的A
+    DrawBase(Painter,BeginPos.x()-0.5*PICTURE_FONT_SIZE,BeginPos.y()+160,'A');
+    QPoint SecondSeqBegin;
+    SetPointCoord(SecondSeqBegin,BeginPos.x()-14,BeginPos.y()+dy*(i-1)+10);
+    seq="UCUG";
+    for(i=0;i<seq.length();++i){
+        DrawBasePair(Painter,SecondSeqBegin.x()-18*i,SecondSeqBegin.y(),seq[i],25,0,RIGHT_DOWN);
+    }
+
+    //画带圆的部分
+    QPoint CircleBegin,CircleEnd;
+    SetPointCoord(CircleBegin,SecondSeqBegin.x()-18*(i-1),SecondSeqBegin.y());
+    CircleEnd=TransCoord(CircleBegin,0,25,RIGHT_DOWN);
+    seq="AGGACCAA";
+    DrawCriclePathBase(Painter,seq,CircleBegin,CircleEnd,30,false);
+}
 RibozymeImagePainter::RibozymeImagePainter(const string& RibozymeType)
 {
     if(RibozymeType==TWISTER_SISTER){
@@ -221,6 +293,9 @@ RibozymeImagePainter::RibozymeImagePainter(const string& RibozymeType)
     }
     else if(RibozymeType==TWISTER){
         ImagePainter=new TwisterPainter();
+    }
+    else if(RibozymeType==HAMMER_HEAD){
+        ImagePainter=new HammerHeadPainter();
     }
 }
 void RibozymeImagePainter::DrawRibozymeImage(const string& MatchRNASeq,unsigned int PictureWidth,unsigned int PictureHeight,QPainter *Painter)
