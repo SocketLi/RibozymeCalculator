@@ -6,6 +6,9 @@
 #include "ui_mainwindow.h"
 #include<QTableView>
 #include<QPoint>
+#include <QtSql/QSqlDatabase>
+#include <QtSql/QSqlQuery>
+#include <QSqlError>
 #include"common.h"
 namespace Ui {
 class MainWindow;
@@ -22,6 +25,9 @@ private slots:
      void OnRightMenuClicked(QPoint ClickPos);
      void OnCopyActionClicked();
      void OnDrawActionClicked();
+     void OnBoxChange(const QString& text);
+     //void on_export_2_clicked();
+
 protected:
      bool eventFilter(QObject *watched, QEvent *event);
 private:
@@ -31,8 +37,8 @@ private:
      Ui::MainWindow *ui;
      RibozymeCalculator RNA_Calculator;
      QMenu* RightMenu;
-     std::string RibozymeSeq,MatchRNASeq,ResultViewRibozymeType;
+     std::string LastDrawRNASeq,LastDrawRibozymeType,ResultViewRibozymeType;
      unsigned int PictureWidth,PictureHeight;
-     bool flag;
+     bool flag,HasDrawButtonClicked;
 };
 #endif // MAINWINDOW_H

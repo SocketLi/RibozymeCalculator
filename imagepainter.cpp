@@ -6,7 +6,7 @@ void TwisterSisterPainter::DrawRibozymeImage(const string& MatchRNASeq,unsigned 
     QFont PictureFont("Microsoft YaHei",PICTURE_FONT_SIZE,75);
     Painter->setFont(PictureFont);
     smatch RegexResult;
-    regex RegexPartern("GCT[A,G,C,T]A[A,G,C,T]");
+    regex RegexPartern("GCU[AGCU]A[AGCU]");
     double Dx=10,degrees=120,ImageBeginX=((sqrt(5)-1)/2)*PictureWidth,ImageBeginY=0.28*PictureHeight; //x坐标的间距 角度（与x轴正向的夹角),第一个碱基的起始坐标
     Painter->setPen(Qt::black);
     QPoint Mark5Cooord(ImageBeginX+Dx,ImageBeginY+Dy(Dx,degrees));//画5'和3'标识
@@ -32,7 +32,7 @@ void TwisterSisterPainter::DrawRibozymeImage(const string& MatchRNASeq,unsigned 
                   VerticalPartBeginCoord.ry()=NoMatchBaseCoord.y()-Dy(Dx,degrees);
               }
               else if(it==RegexResult[0].first){
-                  DrawBase(Painter,VerticalPartBeginCoord.x()+PICTURE_FONT_SIZE,VerticalPartBeginCoord.y()+VerticalPartDy*j+PICTURE_FONT_SIZE/2,*it);
+                  DrawBase(Painter,VerticalPartBeginCoord.x()+PICTURE_FONT_SIZE,VerticalPartBeginCoord.y()+VerticalPartDy*(j-1)+PICTURE_FONT_SIZE/2,*it);
               }
               else if(it==RegexResult[0].first+3){
                   QPoint BeginCoord(VerticalPartBeginCoord.x(),VerticalPartBeginCoord.y()+VerticalPartDy*(j-1));//RegexResult[0].first+2的坐标
@@ -140,7 +140,7 @@ void TwisterPainter::DrawRibozymeImage(const string &MatchRNASeq, unsigned int P
     QFont PictureFont("Microsoft YaHei",PICTURE_FONT_SIZE,75);
     Painter->setFont(PictureFont);
     smatch RegexResult;
-    regex RegexPartern("[AGCT]AA[AGCT]{4}GC"); //NAANNNNGC
+    regex RegexPartern("[AGCU]AA[AGCU]{4}GC"); //NAANNNNGC
     int BeginX=((sqrt(5)-1)/2)*PictureWidth;
     int BeginY=PictureHeight-80;
     double Dy=16,Dx=16;
@@ -300,7 +300,7 @@ RibozymeImagePainter::RibozymeImagePainter(const string& RibozymeType)
 }
 void RibozymeImagePainter::DrawRibozymeImage(const string& MatchRNASeq,unsigned int PictureWidth,unsigned int PictureHeight,QPainter *Painter)
 {
-    if(ImagePainter==NULL){
+    if(ImagePainter==NULL || MatchRNASeq.empty() ){
         return;
     }
     ImagePainter->DrawRibozymeImage(MatchRNASeq,PictureWidth,PictureHeight,Painter);

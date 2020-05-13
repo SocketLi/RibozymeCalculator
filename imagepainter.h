@@ -7,7 +7,7 @@
 #define RIGHT_DOWN 0
 #define PICTURE_FONT_SIZE 12
 #define LOW_BASE_SPACE 2 //DrawMatchLine中为了避免画出的匹配线离低处碱基太近造成的不美观,定义为两个小正方形右下角连线和下方小正方形底边所组成的夹角的对边的溢出量
-#define K 0.5/45 // DrawMatchLine中使用的修正因子，使斜率变化时可以让匹配线向中间移动一些
+#define K PICTURE_FONT_SIZE/45 // DrawMatchLine中使用的修正因子，使斜率变化时可以让匹配线向中间移动一些
 using namespace std;
 class ImagePainterBase{
     public:

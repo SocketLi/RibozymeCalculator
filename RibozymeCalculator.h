@@ -10,6 +10,7 @@
 #include<QtCore/qmath.h>
 #include<QtNetwork/QtNetwork>
 #include<stdio.h>
+#include<map>
 #include"common.h"
 #define SUCEESS 0
 #define ERROR -1
@@ -21,11 +22,11 @@ using namespace std;
 class RibozymeCalculator
 {
 public:
-    RibozymeCalculator():PistolGTBeginPos(0){}
+    RibozymeCalculator();
     string GenRegexPattern(string TarRNA);
     string GenCDNA(string Ribozyme);
     string CalculateGCPercent(string Ribozyme);
-    string CalculateTM(string Ribozyme,string ZymeType);
+    void CalculateTM(const string& MatchRNA,const string& ZymeType,const smatch& SubRegexResult,vector<string> &CalculateResultItem);
     int Calculate(string DNASeq, string TarRNA,string ZymeType,
                  vector< vector< string>>& CalculateResult);
  private:
@@ -34,8 +35,10 @@ public:
    void CalculatePistol(string& MatchRNA,string& Ribozyme);
    void CalculateHammer(string& MatchRNA,string& Ribozyme);
    void CalculateRibozymeParas(string& MatchRNA, string& Ribozyme, unsigned int MatchBeginPos,
-                               unsigned int MatchEndPos,string& ZymeType, vector<string> &CalculateResultItem);
-   unsigned int PistolGTBeginPos,HammerTCBeginPos;
+                               unsigned int MatchEndPos,string& ZymeType,const smatch& SubRegexResult,vector<string> &CalculateResultItem);
+   string* ProcessRibozyme(const string& MatchRNA,const string& ZymeType,const smatch& SubRegexResult);
+   unsigned int PistolGTBeginPos,HammerTCBeginPos,TwisterBeginPos;//TwisterBeginPos计算TM值时去序列用
+   map<string,double> NeighborDH,NeighborDS;
 };
 
 #endif // RIBOZYME_CALCULATOR_H
